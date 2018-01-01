@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Demo for...in[ for...of [ for...in ]  ]</title>
+    </head>
+    <body>
+        <div id="container"></div>
+        <script src="../../dist/j.js"></script>
+        <script>
+			function genData(n) {
+                var ret = {};
+				var sexMap = {
+					'true': "男",
+					'false': "女"
+				};
+				for( var i = 0; i < n; i++ ) {
+                    ret[ 'x' + i ] = [ {
+						name : Math.random(),
+						age : 3 + Math.ceil((Math.random() * 30)),
+						sex : sexMap[1 - Math.random() > 0.5],
+						desc : Math.random()
+                    }, {
+						name : Math.random(),
+						age : 3 + Math.ceil((Math.random() * 30)),
+						sex : sexMap[1 - Math.random() > 0.5],
+						desc : Math.random()
+                    } ];
+				}
+				return ret;
+			}
+			var view = new J.View( {
+				template : [
+                    '<div>',
+                        '<ul :for="k, x, i in list">',
+                            '<li :for="value, index of x">',
+                                '<h6>{{i + 1}}. {{index + 1}}</h6>',
+                                '<p :for="key, value in value">{{key}} : {{value}}</p>',
+                            '</li>',
+                        '</ul>',
+                    '</div>'
+				].join( '' ),
+				scope : {
+                    data : 1,
+                    list : {}
+				}
+			} );
+
+            document.getElementById( 'container' ).appendChild( view.$el );            
+
+			var index = 0
+			var array = []
+			var timer = setInterval(function () {
+				var now = new Date - 0
+				view.scope.list = genData( 1000 )
+				var cost = new Date - now
+				console.log(index, " cost ", cost, 'ms')
+				array.push(cost)
+				now = new Date
+				index++
+				if (array.length > 60) {
+					clearInterval(timer)
+					console.log('平均耗时 ', array.reduce(function (a, b) {
+						return a + b
+					}, 0) / 60, 'ms')
+					array.shift()
+					  console.log('更新平均耗时 ', array.reduce(function (a, b) {
+						return a + b
+					}, 0) / 60, 'ms')
+				}
+			}, 50)
+
+        </script>
+    </body>
+</html>

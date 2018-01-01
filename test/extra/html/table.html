@@ -1,0 +1,6 @@
+<table>
+    <tr :for="x, i of list" $data-i="i">
+        <td $data-i="i*5">{{x.name}}</td>
+        <td :for="y,value, j in x" $data-i="i*5+j+1" $class="y == 'age' ? 'left' : 'right'">{{y}} : {{value}}</td>
+    </tr>
+</table>'

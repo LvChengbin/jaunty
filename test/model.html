@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8" />
+    <title>J.View Testing</title>
+    <link rel="stylesheet" href="./lib/mocha.css" />
+    <script src="../dist/j.js"></script>
+<style>
+    fieldset {
+        border : solid 1px #CCC;
+        padding : 10px;
+        margin-bottom : 30px;
+    }
+    label {
+        display : block;
+    }
+</style>
+</head>
+<body>
+    <div id="container"></div>
+    <script>
+    var view = new J.View( {
+        template : [
+            '<h1><a href="http://www.nextseason.cc" target="_blank" :prevent>NextSeason</a></h1>',
+            '<fieldset>',
+                '<legend>:model="input radio"</legend>',
+                '<p>selected : {{checked}}</p>',
+                '<div>',
+                    '<label :for="k, v in gender">',
+                        '<input type="radio" $value="k" :model="checked" name="gender" $checked="k==1" />',
+                        ' {{v}}',
+                    '</label>',
+                '</div>',
+            '</fieldset>',
+            '<fieldset>',
+                '<legend>:model="select"</legend>',
+                '<p>selected : {{selected}}</p>',
+                '<select :model="selected">',
+                    '<option :for="item of options" $value="item.id" $selected="item.id">',
+                        '{{item.text}}',
+                    '</option>',
+                '</select>',
+            '</fieldset>',
+            '<fieldset>',
+                '<legend>:model="multiple select"</legend>',
+                '<p>selected : {{multipleSelected}}</p>',
+                '<select :model="multipleSelected" multiple>',
+                    '<option :for="item of options" $value="item.id" selected="true">',
+                        '{{item.text}}',
+                    '</option>',
+                '</select>',
+            '</fieldset>',
+            '<fieldset>',
+                '<legend>:model="data"</legend>',
+                '<p>name : {{name}}</p>',
+                '<label>',
+                    '<span>name : </span>',
+                    '<input type="text" :model="name" $value="name" />',
+                '</label>',
+                '<label>',
+                    '<span>name : </span>',
+                    '<input type="text" :model="name" $value="name" />',
+                '</label>',
+            '</fieldset>',
+            '<fieldset>',
+                '<legend>:model="data.attr"</legend>',
+                '<p>friend.name : {{friend.name}}</p>',
+                '<label>',
+                    '<span>friend.name : </span>',
+                    '<input type="text" :model="friend.name" $value="friend.name" />',
+                '</label>',
+            '</fieldset>',
+            '<fieldset>',
+                '<legend>:model="list[0]"</legend>',
+                '<p>list[0]: {{list[0]}}</p>',
+                '<label>',
+                    '<span>list[0]: </span>',
+                    '<input type="text" :model="list[0]" $value="list[1]" />',
+                '</label>',
+                '<p>list[1]: {{list[1]}}</p>',
+                '<label>',
+                    '<span>list[1]: </span>',
+                    '<input type="text" :model="list[1]" $value="list[1]" />',
+                '</label>',
+            '</fieldset>',
+            '<fieldset>',
+                '<legend>:model="variable in for...of"</legend>',
+                '<ul :for="item, i of list2">',
+                    '<li>{{i}}. {{item}}</li>',
+                '</ul>',
+                '<label :for="item, i of list2">',
+                    '<span>{{i}}. </span>',
+                    '<input type="text" :model="item" $value="item" />',
+                '</label>',
+            '</fieldset>',
+            '<fieldset>',
+                '<legend>:model="variable in for...in"</legend>',
+                '<ul :for="key, val in data">',
+                    '<li>{{key}} : {{val}}</li>',
+                '</ul>',
+                '<label :for="key, val in data">',
+                    '<span>{{key}} : </span>',
+                    '<input type="text" :model="val" $value="val" />',
+                '</label>',
+            '</fieldset>',
+            '<fieldset>',
+                '<legend>:model="nested : for...in & for...of"</legend>',
+                '<p>nested.x0[1] : {{nested.x0[1]}}</p>',
+                '<ul :for="key, val in nested">',
+                    '<li>',
+                        '{{key}}',
+                        '<p :for="item, i of val">{{i+1}}. {{item}}</p>',
+                    '</li>',
+                '</ul>',
+                '<label :for="key, val in nested">',
+                    '{{key}}',
+                    '<div :for="item, i of val">',
+                        '<span>{{i+1}}. </span>',
+                        '<input type="text" :model="item" $value="item" />',
+                    '</div>',
+                '</label>',
+            '</fieldset>'
+        ].join( '' ),
+        scope : {
+            name : 'LvChengbin',
+            friend : { name : '' },
+            list : [ 'a' ],
+            list2 : [ 'x', 'y', 'z' ],
+            data : {
+                name : '',
+                phone : ''
+            },
+            nested : {
+                x0 : [ 'a', 'b', 'c' ],
+                x1 : [ 'x', 'y', 'z' ]
+            },
+            selected : null,
+            multipleSelected : [],
+            options : [ {
+                id : 0,
+                text : 'China'
+            }, {
+                id : 1,
+                text : 'United State'
+            } ],
+            checked : null,
+            gender : {
+                '1' : 'Male',
+                '2' : 'Female',
+                '3' : 'Others'
+            }
+        }
+    }, { name : 'view', package : window } );
+
+    document.getElementById( 'container' ).append( view.$el );
+    </script>
+</body>
+</html>

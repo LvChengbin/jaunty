@@ -1,0 +1,1 @@
+window.TEST_IN_SCRIPT_JS = 500;

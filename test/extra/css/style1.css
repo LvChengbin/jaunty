@@ -1,0 +1,5 @@
+#style-helper {
+    width : 100px;
+    height : 0;
+    font-size : {=typeof fontSize !== 'undefined' ? fontSize : 100=}px;
+}

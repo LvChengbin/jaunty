@@ -1,0 +1,22 @@
+{
+  "name": "node-service",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": "node, service",
+  "repository": {
+    "type": "git",
+    "url": "git@git.kangfuzi.com:frontend/node-service.git"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build": "grunt build"
+  },
+  "main": "gulpfile.js",
+  "author": "LiuPan, GuoHe, LvChengbin",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "check-types": "^7.1.5",
+    "ejs": "^2.5.6",
+    "request": "^2.81.0"
+  }
+}

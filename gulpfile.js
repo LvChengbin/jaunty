@@ -1,23 +1,27 @@
 const gulp = require( 'gulp' );
 const sequence = require( 'run-sequence' );
-const { log } = require( './build/utils' );
-const { watch } = require( 'gulp-load-plugins' )();
+const { watch, clean, rollup } = require( 'gulp-load-plugins' )();
 
-require( 'require-dir' )( './build/tasks' );
+const errorhandler = function( e ) {
+    console.log( e.toString() );
+    this.emit( 'end' );
+};
 
-gulp.task( 'default', () => {
-    sequence( 'prepare', 'rollup', 'output', 'deploy' );
+gulp.task( 'clean', () => {
+    return gulp.src( 'dist', { read : false } ).pipe( clean() );
 } );
 
-gulp.task( 'production', () => {
-    sequence( 'prepare', 'rollup', 'babel', 'uglify', 'output', 'deploy' );
+gulp.task( 'default', [ 'clean' ], () => {
+    return gulp.src( 'src/**/*.js' )
+    .pipe( rollup( {
+        input : 'src/j.js',
+        format : 'iife'
+    } ).on( 'error', errorhandler ) )
+    .pipe( gulp.dest( 'dist' ) );
 } );
 
 gulp.task( 'watch',[ 'default' ], () => {
     watch( [ 'src/**/*' ], {}, () => {
-        sequence( 'default', () => {
-            log.warn( 'Watching : jolin' );
-            return Promise.resolve(); // jshint ignore:line
-        } );
+        sequence( 'default' );
     } );
 } );

@@ -492,19 +492,13 @@ class EventCenter {
     }
 
     $trigger( evt, ...data ) {
-        const handlers = this.__listeners[ evt ];
-        if( handlers ) {
-            for( let i = 0, l = handlers.length; i < l; i += 1 ) {
-                handlers[ i ] && handlers[ i ].call( this, ...data );
-            }
-        }
+        this.$strigger( evt, ...data );
         const func = this[ 'on' + evt ];
         checks.function( func ) && func.call( this, ...data );
         return this;
     }
 
     $strigger( evt, ...args ) {
-        //console.log( '[J EventCenter] STRIGGER : ' + evt );
         const handlers = this.__listeners[ evt ];
         if( handlers ) {
             for( let i = 0, l = handlers.length; i < l; i += 1 ) {
@@ -1297,7 +1291,9 @@ function onmessage( evt, subject, ...args ) {
     if( match && match.forward ) {
         const pkg = checks.string ( match.forward ) ? this.$find( match.forward ) : match.forward;
         checks.function( match.process ) && ( args = match.process( ...args ) );
-        pkg.$trigger( 'j://' + evt, subject, ...args );
+        if( args !== false ) {
+            pkg.$trigger( 'j://' + evt, subject, ...args );
+        } 
     }
 }
 
@@ -1356,6 +1352,7 @@ class J$1 extends EventCenter {
             $children : {},
             $name : 'j' + uniqueId(),
             $parent : null,
+            $status : J$1.readyState.CREATED,
             rules : [],
             signals : {}
         };
@@ -1378,14 +1375,24 @@ class J$1 extends EventCenter {
         while( root.$parent ) root = root.$parent;
         this.$root = root;
 
+        let pkg = this;
+        const path = [];
+
+        while( pkg ) {
+            path.unshift( pkg.$name );
+            pkg = pkg.$parent;
+        }
+
+        this.$path = path;
+
         if( root === this  ) {
             roots[ this.$name ] = this;
             const handler = e => {
                 this.$broadcast( '$routers', e );
             };
-            ec.$on( 'popstate', handler );
+            ec.$on( 'routechange', handler );
             this.$on( 'destruct', () => {
-                ec.$off( 'popstate', handler );
+                ec.$off( 'routechange', handler );
             } );
         }
 
@@ -1404,13 +1411,15 @@ class J$1 extends EventCenter {
             onroute.call( this );
         };
         onrouteHandler();
-        ec.$on( 'popstate', onrouteHandler );
+        ec.$on( 'routechange', onrouteHandler );
 
         this.$on( 'destruct', () => {
-            ec.$off( 'popstate', onrouteHandler );
+            ec.$off( 'routechange', onrouteHandler );
         } );
 
         const init = checks.function( this.init ) && this.init( options );
+
+        this.$status = J$1.readyState.LOADING;
 
         if( init && checks.function( init.then ) ) {
             this.__ready = init.then( () => {
@@ -1418,6 +1427,7 @@ class J$1 extends EventCenter {
                 promise.then( () => {
                     console.info( `[J Package] ${this.$path()} is ready @${this.__url} ` );
                     this.__isready = true;
+                    this.$status = J$1.readyState.READY;
                     checks.function( this.action ) && this.action();
                 } );
                 return promise;
@@ -1426,8 +1436,9 @@ class J$1 extends EventCenter {
             ( this.__ready = Promise.all( this.__resources ) ).then( () => {
                 console.info( '[J Package] PACKAGE : "' + this.$path().join( '.' ) + '" is ready' );
                 this.__isready = true;
+                this.$status = J$1.readyState.READY;
                 checks.function( this.action ) && this.action();
-            });
+            } );
         }
     }
 
@@ -1477,11 +1488,11 @@ class J$1 extends EventCenter {
         }
     }
 
-    $ready( func ) {
-        if( !func ) return this.__ready;
+    $ready( handler ) {
+        if( !handler ) return this.__ready;
 
         return this.__ready.then( () => {
-            func.call( this, this );
+            handler.call( this, this );
         } );
     }
     $find( path ) {
@@ -1489,15 +1500,6 @@ class J$1 extends EventCenter {
             isArray( path ) ? path.join( '.$children.' ) : path.replace( /\./g, '.$children.' ),
             this.$children
         );
-    }
-    $path() {
-        var pkg = this;
-        const path = [];
-        while( pkg ) {
-            path.unshift( pkg.$name );
-            pkg = pkg.$parent;
-        }
-        return path;
     }
     $sibling( name ) {
         return this.$parent ? this.$parent.$find( name ) : null;
@@ -1577,10 +1579,10 @@ class J$1 extends EventCenter {
         return p;
     }
 
-    $style( path ) {
-        const p = J$1.Style.create( {
+    $style( path, options ) {
+        const p = J$1.Style.create( assign( {
             url : this.$url( path )
-        } );
+        }, options || {} )  );
         return this.__isready ? p : this.$resources( p, `Loading stylesheet @ ${path}` );
     }
 
@@ -1679,14 +1681,14 @@ class J$1 extends EventCenter {
 
     $unicast( to, subject, body, from ) {
         from || ( from = this );
-        checks.string( to ) && ( to = this.$find( to ) ); 
         isArray( to ) || ( to = [ to ] );
         for( let i = 0, l = to.length; i < l; i += 1 ) {
-            to[ i ].$trigger( 'j://event', subject, body, new Event( { from, subject } ) );
+            const item = checks.string( to[ i ] ) ? this.$find( to[ i ] ) : to[ i ];
+            item && item.$trigger( 'j://event', subject, body, new Event( { from, subject } ) );
         }
     }
 
-    $bubbling( subject, body, from ) {
+    $bubble( subject, body, from ) {
         from || ( from = this );
         let pkg = this;
         while( pkg ) {
@@ -1722,6 +1724,12 @@ class J$1 extends EventCenter {
         throw new TypeError( `[Package ${this.$name}@${this.__url}] ${message}`, ...args );
     }
 }
+
+J$1.readyState = {
+    CREATED : 0,
+    LOADING : 1,
+    READY : 2
+};
 
 J$1.find = function( path ) {
     var root;
@@ -1936,6 +1944,7 @@ class Extension extends EventCenter {
         if( !init || !init.name || !init.package ) {
             console.error( '[J ERROR] Extension : the initial information is invalid.', init, this );
         }
+        this.$status = Extension.readyState.CREATED;
         this.__isReady = false;
         this.__id = uniqueId();
         this.__resources = [];
@@ -1944,6 +1953,7 @@ class Extension extends EventCenter {
         this.$type = init.$type;
         this.$package = init.package;
         this.$package.__isReady || this.$package.$resources( this, this );
+        this.$status = Extension.readyState.LOADING;
     }
 
     $init() {
@@ -1955,6 +1965,7 @@ class Extension extends EventCenter {
                 promise.then( () => {
                     this.__resolve();
                     this.__isReady = true;
+                    this.$status = Extension.readyState.READY;
                     checks.function( this.action ) && this.action();
                 } );
             } );
@@ -1962,6 +1973,7 @@ class Extension extends EventCenter {
             Promise.all( this.__resources ).then( () => {
                 this.__resolve();
                 this.__isReady = true;
+                this.$status = Extension.readyState.READY;
                 checks.function( this.action ) && this.action();
             } );
         }
@@ -1999,6 +2011,12 @@ class Extension extends EventCenter {
     }
 
 }
+
+Extension.readyState = {
+    CREATED : 0,
+    LOADING : 1,
+    READY : 2
+};
 
 const eventcenter = new EventCenter();
 
@@ -2918,7 +2936,7 @@ var $prevent = {
                     events = [ 'click' ];
                     break;
                 case 'INPUT' :
-                    const inputType = node.type;
+                    var inputType = node.type;
                     if( inputType === 'button' || inputType === 'submit' ) {
                         events = [ 'click' ];
                     }
@@ -3262,14 +3280,10 @@ var $fixed = {
             let startScoll = false;
             let fixed = false;
             let pos = null;
-            let width = null;
-            let height = null;
             let timer = null;
             window.addEventListener( 'scroll', () => {
                 if( !startScoll && !fixed ) {
                     pos = nodePosition( node );
-                    width = node.offsetWidth;
-                    height = node.offsetHeight;
                     startScoll = true;
                 }
 
@@ -3340,11 +3354,11 @@ var $var = {
     }
 };
 
-const emailReg = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const emailReg = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const urlReg = /^(?:(?:https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/i;
 
 var Validate = {
-    required : ( value ) => isArray( value ) ? value.length : ( value === 0 || !!value ),
+    required : ( value ) => isArray( value ) ? !!value.length : ( value === 0 || !!value ),
     email : email => emailReg.test( email ),
     phone : num => { return /^\d{1,14}$/.test( num ) },
     url : text => urlReg.test( text ),
@@ -3353,14 +3367,13 @@ var Validate = {
     min : ( value, min ) => value >= min,
     max : ( value, max ) => value <= max,
     minlength : ( value, min ) => value && value.length >= min,
-    maxlength : ( value, max ) => !value || value.length <= max,
-    neminlength : ( value, min ) => value && ( !value.length || value.length >= min ),
-    nemaxlength : ( value, max ) => value && ( !value.length || value.length <= max ),
+    maxlength : ( value, max ) => !value || !value.length || value.length <= max,
+    minlengthIfNotEmpty: ( value, min ) => !value || !value.length || value.length >= min,
     pattern : ( value, reg ) => ( checks.regexp( reg ) ? reg : new RegExp( reg ) ).test( value ),
     in : ( value, haystack ) => haystack.indexOf( value ) > -1,
     date( str ) {
         if( !str ) return false;
-        const match = str.match( /^(\d+)\-(\d{1,2})\-(\d{1,2})$/ );
+        const match = str.match( /^(\d+)-(\d{1,2})-(\d{1,2})$/ );
         if( !match ) return false;
         const y = +match[ 1 ];
         const m = +match[ 2 ];
@@ -3373,6 +3386,16 @@ var Validate = {
             if( y % 4 && d > 28 ) return false;
         }
         return true;
+    },
+    minDate() {
+    },
+    maxDate() {
+    },
+    time() {
+    },
+    minTime() {
+    },
+    maxTime() {
     }
 };
 
@@ -3472,7 +3495,6 @@ class Model extends Extension {
         this.expose || ( this.expose = [] );
 
         this.__snapshot = null;
-        this.$events = [];
         this.$data = {};
 
         this.__initial = null;
@@ -3481,24 +3503,35 @@ class Model extends Extension {
         this.__triedSubmit = false;
 
         return this.$resources( this.__initData(), 'Initializing data' ).then( () => {
-            this.__initial = JSON.stringify( this.$data );
+            try {
+                this.__initial = JSON.stringify( this.$data );
+            } catch( e ) {
+                console.warn( e );
+            }
             this.__bindSpecialProperties();
         } );
     }
 
     $reload( options ) {
-        assign( this, options );
-        this.__init().then( () => {
+        options && assign( this, options );
+        return this.__init().then( () => {
             this.$trigger( 'refresh' );
+            return this.$data;
         } );
     }
 
     $refresh() {
         this.$trigger( 'beforerefresh' );
-        this.__initData().then( () => {
-            this.__initial = JSON.stringify( this.$data );
+        return this.__initData().then( () => {
+            try {
+                this.__initial = JSON.stringify( this.$data );
+            } catch( e ) {
+                console.warn( e );
+            }
             this.__bindSpecialProperties();
             this.$trigger( 'refresh' );
+
+            return this.$data;
         } );
     }
 
@@ -3534,7 +3567,7 @@ class Model extends Extension {
                         case 1 :
                             this.$watch( item.path, item.__validator );
                             break;
-                        case 'changeAfterSubmit' :
+                        case 'change-after-submit' :
                         case 2 :
                             this.$watch( item.path, makeChangeAfterSubmitHandler( item ) );
                             break;
@@ -3609,6 +3642,7 @@ class Model extends Extension {
     $reset() {
         this.$assign( JSON.parse( this.__initial ) );
         this.__bindSpecialProperties();
+        return Promise.resolve( this.$data );
     }
 
     $assign( dest, key, value ) {
@@ -3631,24 +3665,24 @@ class Model extends Extension {
         this.$assign( dest, { [ key ] : value } );
     }
 
-    $watch( path, handler ) {
+    $watch( exp, handler ) {
         const events = {};
         Record.start( this, events, handler );   
-        expression( path )( this.$data ); 
+        expression( exp )( this.$data ); 
         Record.reset();
-        const fullPath = this.__id + '.' + path;
+        const fullPath = this.__id + '.' + exp;
 
         /**
-         * if the property getting by path is not already existed.
-         * bind the path directily to make the changes can be watched.
+         * if the property getting by exp is not already existed.
+         * bind the exp directily to make the changes can be watched.
          */
         if( !events[ fullPath ] ) {
-            eventcenter.$on( this.__id + '.' + path, handler );
+            eventcenter.$on( this.__id + '.' + exp, handler );
         }
     }
 
-    $unwatch( path, handler ) {
-        eventcenter.$off( this.__id + '.' + path, handler );
+    $unwatch( exp, handler ) {
+        eventcenter.$off( this.__id + '.' + exp, handler );
     }
 
     $validate( name ) {
@@ -3685,14 +3719,33 @@ class Model extends Extension {
         return !( this.$data.$validation.$error = error );
     }
 
-    $submit( ...args ) {
+    $submit( method = 'submit', multiple = false, ...args ) {
         const data = this.$data;
         this.__triedSubmit = true;
-        if( data.$submitting || this.$validate() === false ) return false;
+
+        if( this.$validate() === false ) {
+            return Promise.reject( {
+                errmsg : 'invalid data'
+            } );
+        }
+
+        if( !multiple && data.$submitting ) {
+            return Promise.reject( {
+                errmsg : 'multiple submitting'
+            } );
+        }
         data.$submitting = data.$requesting = true;
-        const res = this.submit( ...args );
+
+        let res;
+
+        if( !checks.function( method ) ) {
+            console.error( `Cannot find "${method}" method.` );
+        }
+
+        res = this[ method ]( ...args );
+
         if( checks.function( res.then ) ) {
-            res.then( response => {
+            return res.then( response => {
                 data.$error = false;
                 data.$response = response;
                 data.$submitting = data.$requesting = false;
@@ -3706,9 +3759,13 @@ class Model extends Extension {
             if( res === false ) {
                 data.$submitting = data.$requesting = false;
                 data.$error = true;
+
+                return Promise.reject( {
+                } );
             } else {
                 data.$error = false;
                 data.$submitting = data.$requesting = false;
+                return Promise.resolve( res );
             }
         }
     }
@@ -3724,29 +3781,36 @@ class Model extends Extension {
             return response;
         } ).catch( e => {
             data.$requesting = false;
-            data.$error = true;
+            data.$error = e;
             data.$response = e;
             throw e;
         } );
 
     }
 
-    $pure( reverse = false, data = null ) {
-        const res = {};
-        const list = [ '$ready', '$loading', '$loaded', '$failed', '$error', '$submitting', '$requesting', '$validation', '$response' ];
-
-        data || ( data = this.$data );
-
-        if( reverse ) {
-            for( let i = 0, l = list.length; i < l; i += 1 ) {
-                res[ list[ i ] ] = data[ list[ i ] ];
-            }
-            return res;
-        }
+    $pure( keys ) {
+        const data = this.$data;
 
         if( isArray( data ) ) return data;
 
-        for( let i = 0, keys = getKeys( data), l = keys.length; i < l; i += 1 ) {
+        const res = {};
+        const list = [
+            '$ready',
+            '$loading',
+            '$loaded',
+            '$failed',
+            '$error',
+            '$submitting',
+            '$requesting',
+            '$validation',
+            '$response'
+        ];
+
+        if( !keys ) {
+            keys = getKeys( data );
+        }
+
+        for( let i = 0, l = keys.length; i < l; i += 1 ) {
             const key = keys[ i ];
             if( list.indexOf( key ) < 0 ) {
                 res[ key ] = data[ key ];
@@ -3796,7 +3860,7 @@ var $data = {
             }
         }
 
-        const limited = node.getAttribute( 'data-global' ) === 'false';
+        const limited = checks.false( node.getAttribute( 'data-global' ) );
 
         if( limited ) {
             node.$scope = observer( { [ variable ] : null }, uniqueId(), scope );
@@ -4108,12 +4172,12 @@ var $checked = {
 };
 
 window.addEventListener( 'popstate', e => {
-    ec.$trigger( 'popstate', e );
+    ec.$trigger( 'routechange', e );
 } );
 
 const pushState = ( state, title, url ) => {
     window.history.pushState( state, title, url );
-    ec.$trigger( 'popstate', state );
+    ec.$trigger( 'routechange', state );
 };
 
 var $state = {
@@ -4249,13 +4313,13 @@ var $router = {
             }
         };
 
-        ec.$on( 'popstate', handler );
+        ec.$on( 'routechange', handler );
 
         /**
          * Remove bound event while the node being removed from the dom tree
          */
         anchor.$ec.$on( 'remove', () => {
-            ec.$off( 'popstate', handler );
+            ec.$off( 'routechange', handler );
         } );
         handler();
     }
@@ -4608,10 +4672,6 @@ function traverse( nodes, view, scope, options ) {
     }
 }
 
-const uppercase =  str => str.toString().toUpperCase();
-const lowercase =  str => str.toString().toLowerCase();
-const ucfirst = str => str.charAt( 0 ).toUpperCase() + str.slice( 1 );
-
 // Time format rules same as the format rules of date function in PHP 
 // @see http://php.net/manual/en/function.date.php
 //
@@ -4736,15 +4796,23 @@ function time( timestamp, format = 'Y-m-d' ) {
     return +new Date( timestamp );
 }
 
-const divide = ( n, divisor, f = 2 ) => ( n / divisor ).toFixed( f );
-const multiply = ( n, multiplier ) => n * multiplier;
-const add = ( n, addend ) => n + addend;
-const minus = ( n, subtractor ) => n - subtractor;
 const numberFormat = ( n, f = 2 ) => n.toFixed( f );
+const sum = arr => arr.reduce( ( a, b ) => a + b, 0 );
 
-const split = ( str, delimiter ) => str.split( delimiter );
-const trim = str => str.trim();
+const add = ( n, ...addends ) => {
+    let res = +n;
+    for( let i = 0, l = addends.length; i < l; i += 1 ) {
+        const addend = addends[ i ];
+        res += Array.isArray( addend ) ?sum( addend ) : +addend;
+    }
+    return res;
+};
+
+const trim = str => ( str ).toString().trim();
 const cut = ( str, len, ext = '...' ) => str.substr( 0, len ) + ext;
+const uppercase =  str => str.toString().toUpperCase();
+const lowercase =  str => str.toString().toLowerCase();
+const ucfirst = str => str.charAt( 0 ).toUpperCase() + str.slice( 1 );
 
 const escape = str => encodeHTML( str );
 const highlight = ( str, query, classname = '', escape = true ) => {
@@ -4760,18 +4828,15 @@ const decode = url => decodeURIComponent( url );
 
 
 var filters = Object.freeze({
+	time: time,
+	numberFormat: numberFormat,
+	sum: sum,
+	add: add,
+	trim: trim,
+	cut: cut,
 	uppercase: uppercase,
 	lowercase: lowercase,
 	ucfirst: ucfirst,
-	time: time,
-	divide: divide,
-	multiply: multiply,
-	add: add,
-	minus: minus,
-	numberFormat: numberFormat,
-	split: split,
-	trim: trim,
-	cut: cut,
 	escape: escape,
 	highlight: highlight,
 	encode: encode,
@@ -4950,7 +5015,7 @@ function bindLocation() {
 
 bindLocation();
 
-ec.$on( 'popstate', () => bindLocation() );
+ec.$on( 'routechange', () => bindLocation() );
 window.addEventListener( 'hashchange', () => bindLocation() );
 
 class View extends Extension {
@@ -4977,10 +5042,17 @@ class View extends Extension {
                 copyDescripter( this, this.scope, getKeys( this.scope ) );
                 const frag = html2Node( this.template );
                 traverse( slice.call( frag.childNodes ), this, this );
+
+                if( checks.string( this.container ) ) {
+                    this.container = document.querySelector( this.container );
+                }
+
                 if( this.container ) {
                     this.$el = this.container;
                     this.$el.appendChild( frag );
-                } else { this.$el = frag; }
+                } else { 
+                    this.$el = frag;
+                }
                 return Promise.resolve();
             } ), 'Loading resources'
         ).then( () => { this.$init(); } );
@@ -5044,7 +5116,7 @@ class View extends Extension {
                         m.$on( 'refresh', () => this.$set( this, name, m.$data ) );
                         return m.$ready();
                     } else if( m instanceof J$1 ) {
-                        return this.$bind( name, m.expose() );
+                        return this.$bind( name, checks.function( m.expose ) ?  m.expose() : m.data );
                     } else {
                         return this.$set( this, name, m );
                     }
@@ -5098,17 +5170,17 @@ class View extends Extension {
         mtrigger( dest );
     }
 
-    $watch( path, handler ) {
-        eventcenter.$on( this.__id + '.' + path, handler );
+    $watch( exp, handler ) {
+        eventcenter.$on( this.__id + '.' + exp, handler );
     }
 
-    $unwatch( path, handler ) {
-        eventcenter.$off( this.__id + '.' + path, handler );
+    $unwatch( exp, handler ) {
+        eventcenter.$off( this.__id + '.' + exp, handler );
     }
 
-    $filter( name, func ) {
-        if( checks.promise( func ) ) {
-            return func.then( data => {
+    $filter( name, handler ) {
+        if( checks.promise( handler ) ) {
+            return handler.then( data => {
                 if( !data ) return;
                 if( data instanceof J$1 ) {
                     this.$filters[ name ] = checks.function( data.expose ) ? data.expose() : data;
@@ -5117,8 +5189,8 @@ class View extends Extension {
                 }
             } );
         }
-        if( checks.string( func ) ) {
-            return this.$filter( name, this.$mount( func ).then( p => {
+        if( checks.string( handler ) ) {
+            return this.$filter( name, this.$mount( handler ).then( p => {
                 for( let attr in p ) {
                     if( checks.function( p[ attr ] ) ) {
                         p[ attr ] = p[ attr ].bind( p );
@@ -5127,8 +5199,8 @@ class View extends Extension {
                 return p;
             } ) );
         }
-        this.$filters[ name ] = func;
-        return Promise.resolve( func );
+        this.$filters[ name ] = handler;
+        return Promise.resolve( handler );
     }
 
     $destruct() {

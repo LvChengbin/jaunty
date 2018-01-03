@@ -57,7 +57,9 @@ module.exports = function(config) {
             plugins : [
                 babel()
             ],
-            format : 'iife'
+            output : {
+                format : 'iife'
+            }
         },
 
         // test results reporter to use

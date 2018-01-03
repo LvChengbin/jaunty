@@ -10,7 +10,6 @@ import { traverse as compile } from './compile';
 import { traverse as traverseData , observer, mtrigger } from '../observer';
 import { assign, slice, getKeys } from '../../variables';
 import Model from '../model';
-import * as filters from './filters/index';
 import URL from '../url';
 import ec from '../../core/ec';
 
@@ -228,8 +227,6 @@ class View extends Extension {
         this.$trigger( 'destruct' );
     }
 }
-
-View.$filters = assign( {}, filters );
 
 View.filter = function( name, func ) {
     View.$filters[ name ] = func;

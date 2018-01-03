@@ -5,8 +5,7 @@
         "node": true
     },
     "globals" : {
-        "J" : true,
-        "chai" : true,
+        "define" : true,
         "describe" : true,
         "it" : true,
         "expect" : true
@@ -18,20 +17,12 @@
     },
     "rules": {
         "no-console" : 0,
-        "indent": [
-            "error",
-            4,
-            { "SwitchCase" : 1 }
-        ],
         "linebreak-style": [
             "error",
             "unix"
         ],
-        //"quotes": [ "error", "single" ],
-        "semi": [
-            "error",
-            "always",
-            { "omitLastInOneLineBlock" : true }
-        ]
+        "quotes": [ "error", "single" ],
+        "semi": [ 0 ]
+        //"indent": [2, 4, {"SwitchCase": 1}]
     }
 }

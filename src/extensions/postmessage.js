@@ -1,5 +1,5 @@
-import { uniqueId } from '../core/utils';
-import Promise from '../core/promise';
+import Promise from '@lvchengbin/promise';
+import { uniqueId } from '../utils';
 
 const listeners = {};
 

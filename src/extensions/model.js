@@ -1,7 +1,9 @@
-import Extension from '../core/extension';
-import { realPath, checks } from '../core/utils';
-import { request } from '../core/http';
-import Promise from '../core/promise';
+import Promise from '@lvchengbin/promise';
+import is from '@lvchengbin/is';
+
+import Extension from '../extension';
+import { $u } from '../utils';
+import { request } from '../http';
 import { assign, getKeys, defineProperty, isArray } from '../variables';
 import { traverse as traverseData, mtrigger } from './observer';
 import { eventcenter, getDataByPath, Record, expression } from './utils';
@@ -32,9 +34,9 @@ function makeValidator( name, bound, model ) {
             const item = bound[ key ];
             let error;
 
-            if( checks.function( item ) ) {
+            if( is.function( item ) ) {
                 error = !item.call( model, val );
-            } else if( checks.function( Validate[ key ] ) ) {
+            } else if( is.function( Validate[ key ] ) ) {
                 error = !Validate[ key ]( val, bound[ key ] );
             } else { continue }
             error && ( res = false );
@@ -73,7 +75,7 @@ function model( data, m ) {
 
     for( let i = 0, l = keys.length; i < l; i += 1 ) {
         const item = m[ keys[ i ] ];
-        methods[ keys[ i ] ] = checks.function( item ) ? item.bind( m ) : item;
+        methods[ keys[ i ] ] = is.function( item ) ? item.bind( m ) : item;
     }
 
     for( let i = 0, l = keys.length; i < l; i += 1 ) {
@@ -123,13 +125,13 @@ class Model extends Extension {
     $reload( options ) {
         options && assign( this, options );
         return this.__init().then( () => {
-            this.$trigger( 'refresh' );
+            this.$emit( 'refresh' );
             return this.$data;
         } );
     }
 
     $refresh() {
-        this.$trigger( 'beforerefresh' );
+        this.$emit( 'beforerefresh' );
         return this.__initData().then( () => {
             try {
                 this.__initial = JSON.stringify( this.$data );
@@ -137,7 +139,7 @@ class Model extends Extension {
                 console.warn( e );
             }
             this.__bindSpecialProperties();
-            this.$trigger( 'refresh' );
+            this.$emit( 'refresh' );
 
             return this.$data;
         } );
@@ -206,7 +208,7 @@ class Model extends Extension {
         }
 
         if( this.url ) {
-            this.url = realPath( this.url );
+            this.url = $u.generate( this.url );
             return request( this.url, {
                 data : params || null,
                 storage : this.storage
@@ -217,9 +219,9 @@ class Model extends Extension {
                 console.error( e );
             } );
         } else if( this.data ) {
-            if( checks.function( this.data ) ) {
+            if( is.function( this.data ) ) {
                 const p = this.data();
-                if( checks.promise( p ) ) {
+                if( is.promise( p ) ) {
                     return p.then( response => {
                         this.$data = model( response, this );
                         traverseData( this.$data, this.__id );
@@ -230,7 +232,7 @@ class Model extends Extension {
                 }
                 return promise;
 
-            } else if( checks.promise( this.data ) ) {
+            } else if( is.promise( this.data ) ) {
                 return this.data.then( response => {
                     this.$data = model( response, this );
                     traverseData( this.$data, this.__id );
@@ -258,7 +260,7 @@ class Model extends Extension {
             if( typeof key === 'undefined' ) {
                 return this.__initData( dest ).then( () => {
                     this.__bindSpecialProperties();
-                    this.$trigger( 'refresh' );
+                    this.$emit( 'refresh' );
                 } );
             }
             traverseData( key, null, dest );
@@ -290,7 +292,7 @@ class Model extends Extension {
     }
 
     $unwatch( exp, handler ) {
-        eventcenter.$off( this.__id + '.' + exp, handler );
+        eventcenter.$removeListener( this.__id + '.' + exp, handler );
     }
 
     $validate( name ) {
@@ -318,7 +320,7 @@ class Model extends Extension {
             }
         }
 
-        if( checks.function( this.validate ) ) {
+        if( is.function( this.validate ) ) {
             if( this.validate() === false ) {
                 error = true;
             }
@@ -346,13 +348,13 @@ class Model extends Extension {
 
         let res;
 
-        if( !checks.function( method ) ) {
+        if( !is.function( method ) ) {
             console.error( `Cannot find "${method}" method.` );
         }
 
         res = this[ method ]( ...args );
 
-        if( checks.function( res.then ) ) {
+        if( is.function( res.then ) ) {
             return res.then( response => {
                 data.$error = false;
                 data.$response = response;

@@ -1,4 +1,5 @@
-import { uniqueId, checks } from '../../../core/utils';
+import is from '@lvchengbin/is';
+import { uniqueId } from '../../../utils';
 import { Record } from '../../utils';
 import { expression, interpolation, convertPackage, findMethod, traverseNode } from '../utils';
 import { observer } from '../../observer';
@@ -46,7 +47,7 @@ export default {
                 } ); 
                 if( node.hasAttribute( 'validate-method' ) ) {
                     const func = interpolation( convertPackage( node.getAttribute( 'validate-method', view.$package ) ) )( scope );
-                    if( checks.function( func ) && !findMethod( func, view )() ) {
+                    if( is.function( func ) && !findMethod( func, view )() ) {
                         res = false;
                     } else {
                         res = !!func;
@@ -101,7 +102,7 @@ export default {
             if( bound.hasOwnProperty( 'method' ) ) {
                 const value = convertPackage( bound.method, view.$package );
                 let func = interpolation( value )( scope ); 
-                if( checks.function( func ) ) {
+                if( is.function( func ) ) {
                     if( !findMethod( func, view )( val ) ) {
                         res = true;
                     }

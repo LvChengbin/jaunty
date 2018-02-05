@@ -1,10 +1,10 @@
+import is from '@lvchengbin/is';
 import { Record } from '../utils';
 import { wrapNode, expression, interpolation, convertPackage, strConvert, findMethod, addClass, removeClass } from './utils';
 import { sort, bindDirective, compileDirective } from './directive';
 import { leftDelimiterReg, rightDelimiterReg } from './settings';
 import events from './events';
 import { slice } from '../../variables';
-import { checks } from '../../core/utils';
 
 const regTag = new RegExp(
     leftDelimiterReg + '((.|\\n)+?)' + rightDelimiterReg
@@ -144,7 +144,7 @@ function compileEvent( node, attr, view ) {
 
     const handler = function( e ) {
         const func = f( scope, node );
-        checks.function( func ) && findMethod( func, view )( e );
+        is.function( func ) && findMethod( func, view )( e );
     };
 
     events[ name ] ? events[ name ]( node, handler ) : node.addEventListener( name, handler );

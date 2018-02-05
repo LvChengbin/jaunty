@@ -1,6 +1,7 @@
+import is from '@lvchengbin/is';
 import { eventcenter } from '../utils';
-import { escapeReg, checks } from '../../core/utils';
-import EventCenter from '../../core/eventcenter';
+import escapeReg from '@lvchengbin/escape/src/regexp';
+import EventEmitter from '@lvchengbin/event-emitter';
 import { leftDelimiterReg, rightDelimiterReg } from './settings';
 import { assign, defineProperty } from '../../variables';
 
@@ -108,11 +109,11 @@ function purifyNode( node ) {
         if( item.$id ) {
             const events = item.$events;
             for( let i = 0, l = events.length; i < l; i = i + 1 ) {
-                eventcenter.$off( events[ i ][ 0 ], events[ i ][ 1 ] );
+                eventcenter.$removeListener( events[ i ][ 0 ], events[ i ][ 1 ] );
             }
         }
         item.$relevant && purifyNode( item.$relevant );
-        item.$ec.$trigger( 'remove' );
+        item.$ec.emit( 'remove' );
     } );
 }
 
@@ -139,7 +140,7 @@ function wrapNode( node, scope, options ){
     assign( node, { 
         $events : [],
         $eventMarks : {},
-        $ec : new EventCenter(),
+        $ec : new EventEmitter(),
         $id : ++id,
         $scope : scope,
         $options : options ? assign( {}, options ) : {}
@@ -211,7 +212,7 @@ function unique( arr ) {
 }
 
 function addClass( elem, className ) {
-    checks.array( className ) && ( className = className.join( ' ' ) );
+    is.array( className ) && ( className = className.join( ' ' ) );
 
     const result = elem.className + ' ' + className;
     const arr = result.split( /\s+/ );
@@ -221,7 +222,7 @@ function addClass( elem, className ) {
 
 function removeClass( elem, className ) {
 
-    checks.array( className ) || ( className = className.split( /\s+/ ) );
+    is.array( className ) || ( className = className.split( /\s+/ ) );
     const exists = elem.className.split( /\s+/ );
 
     for( let i = 0, l = exists.length; i < l; i += 1 ) {

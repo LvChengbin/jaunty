@@ -1,5 +1,5 @@
-import EventCenter from '../core/eventcenter';
-const eventcenter = new EventCenter();
+import EventEmitter from '@lvchengbin/event-emitter';
+const em = new EventEmitter();
 
 const Record = {
     node : null,
@@ -8,7 +8,7 @@ const Record = {
     set( path ) {
         if( this.events[ path ] ) return;
         this.events[ path ] = true;
-        eventcenter.$on( path, this.handler );
+        em.$on( path, this.handler );
         this.handler && this.node.$events.push( [ path, this.handler ] );
     },
     reset() {
@@ -36,4 +36,4 @@ function expression( str ) {
     return ( inCache[ str ] = new Function( ...args, 'try{with(s)return ' + str + '}catch(e){window.console.warn("[J WARN] extension : " +e);return null}' ) );
 }
 
-export { eventcenter, Record, getDataByPath, expression };
+export { em, Record, getDataByPath, expression };

@@ -1,4 +1,4 @@
-import { escapeReg } from '../../core/utils';
+import escapeReg from '@lvchengbin/escape/src/regexp';
 
 export const leftDelimiter = '{{';
 export const rightDelimiter = '}}';

@@ -1,5 +1,5 @@
 import { expression } from '../utils';
-import { pushState } from '../../../core/history';
+import { pushState } from '../../../history';
 
 export default {
     compile( directive, node ) {

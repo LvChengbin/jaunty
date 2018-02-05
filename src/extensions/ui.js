@@ -1,5 +1,4 @@
-import { assign } from '../variables';
-import { checks } from '../core/utils';
+import is from '@lvchengbin/is';
 
 const requestAnimationFrame = window.requestAnimationFrame || function( fn ){ window.setTimeout( fn, 30 ) }; /*jshint ignore:line*/
 
@@ -23,7 +22,7 @@ function reposition( start, end, elapsed, duration ) {
 //function scroll( dest = {}, duration = 500, callback = null, context = window ) {
 function scroll( options ) {
     if( options.node ) {
-        assign( options, nodePosition( options.node ) );
+        Object.assign( options, nodePosition( options.node ) );
     }
     let {
         x = 0,
@@ -56,7 +55,7 @@ function scroll( options ) {
         }
 
         if( elapsed > duration ) {
-            checks.function( callback ) && callback();
+            is.function( callback ) && callback();
         } else {
             requestAnimationFrame( step );
         }

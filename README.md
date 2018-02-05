@@ -1,4 +1,4 @@
-# Jolin
+# Jaunty
 
 <!-- vim-markdown-toc GFM -->
 
@@ -53,9 +53,9 @@
 
 ## Introduction
 
-Jolin is a frontend framework which let you make every part in your page to be managed as a package. A package in Jolin could have it's own files and it should always have a file named `index.js` as the main file of th package. After loading a package, the `index.js` in the package would execut and the package would be mounted under the it's parent package (the pacakge mounted current package).
+Jaunty is a frontend framework which let you make every part in your page to be managed as a package. A package in Jaunty could have it's own files and it should always have a file named `index.js` as the main file of th package. After loading a package, the `index.js` in the package would execut and the package would be mounted under the it's parent package (the pacakge mounted current package).
 
-While you are using Jolin to create your page, every part in your page would be a package, all the packages would be like a tree with a root package, you can load anything in each package such as script file, CSS file, and so on, and you can also manage the files inside the package, the framework would help you to load your files asnycronous and manage the order of each type of files.
+While you are using Jaunty to create your page, every part in your page would be a package, all the packages would be like a tree with a root package, you can load anything in each package such as script file, CSS file, and so on, and you can also manage the files inside the package, the framework would help you to load your files asnycronous and manage the order of each type of files.
 
 You aslo can send messages from one package to others or do communication with the event center. As well, you can reply a message or forward messages to other package easily. For these, what you need to do is just set some listening rules inside of the package.
 
@@ -65,11 +65,11 @@ The `View` we are providing supports a series of directives, such as `:for...in`
 
 ## Get Started
 
-At the beginning of you are going to create your page with Jolin, you have to create the root package in the page, and all of the other packages would be it's child packages or grand child packages. 
+At the beginning of you are going to create your page with Jaunty, you have to create the root package in the page, and all of the other packages would be it's child packages or grand child packages. 
 
 > Actually, you can create multiple root packages in a single page if you really want to do that.
 
-Creating root package, you just need to `new` an instance of Jolin, such as:
+Creating root package, you just need to `new` an instance of Jaunty, such as:
 
 
 ~~~js
@@ -92,12 +92,12 @@ new J( 'package name', {
 
 The first param should be the name of the root package, and the second one should be the methods and properties you want to bind to the package.
 
-> Because the root package is also a package of Jolin, and it is just a little special, so, for more information, you can see [Package](#package).
+> Because the root package is also a package of Jaunty, and it is just a little special, so, for more information, you can see [Package](#package).
 
 
 ## Package
 
-The `Package` is the main part of Jolin. 
+The `Package` is the main part of Jaunty. 
 
 ### Creating a package instance
 
@@ -116,7 +116,7 @@ When you create a `J.Package` instance, you need to pass in an **options object*
 - **init** | `Function`
 
     While initializing a package, the `init` method would be called before the status of the package changes to `LOADING`.
-    You can load resources of the package inside of `init` method and all the resources you had appeneded inside of init would be seemed as the resources of the package, and the package's status would change to `READY` till its resources loaded. For example:
+    You can load resources of the package inside of `init` method and all the resources you had appeneded inside of init would be thought of as the resources of the package, and the package's status would change to `READY` till its resources loaded. For example:
 
     ~~~js
     new J.Package( {
@@ -183,7 +183,7 @@ new J( 'root', {
 
 Every package has to be mounted by another package, expect the first one which is an instance of `J`, and all of these packages would constitute a tree, every package would be a `NODE` of the tree. We defined some different relations between different packages in the tree, and there is one of them, we called `Visible Packages`, need some explanations.
 
-Using `Jolin`, we can develope independent package without considering other package, you only need to manage resources and features of the package you are developing, to listen to messages from other packages, and also to manage its child packages. So, for this package, it cannot know what package are existing in the package tree except some packages we call it `Visible Packages` of this package.
+Using `Jaunty`, we can develope independent package without considering other package, you only need to manage resources and features of the package you are developing, to listen to messages from other packages, and also to manage its child packages. So, for this package, it cannot know what package are existing in the package tree except some packages we call it `Visible Packages` of this package.
 
 `Visible Packages` of a package including `Root Package`, `Parent Package`, and all of its `Child Packages`, so even though you actually know some information of other packages, in order to make your package can be reused in different package tree, you should not do communication with other packages except `Visible Package`.
 
@@ -1035,7 +1035,7 @@ __Return value__
 
 ### Rules
 
-`Rules` in Jolin is used to route the messages from other packages. You can create rules by `new J.Rule`, and add them to the `rules` properties of package.
+`Rules` in Jaunty is used to route the messages from other packages. You can create rules by `new J.Rule`, and add them to the `rules` properties of package.
 
 __Syntax__
 
@@ -1186,7 +1186,7 @@ J.Package( {
 
 ## Load resources
 
-Jolin supports some ways for loading different types of resources, such as scripts, CSS files, and HTML files, etc. With Jolin, Every package would have it's own resources, a package would be considered as a loaded package after all of its resources loaded. So if you want to load something as a resource of a package, you have to add a promise object, which is of loading the resource, to the package with method `$resources` inside the `init` method.
+Jaunty supports some ways for loading different types of resources, such as scripts, CSS files, and HTML files, etc. With Jaunty, Every package would have it's own resources, a package would be considered as a loaded package after all of its resources loaded. So if you want to load something as a resource of a package, you have to add a promise object, which is of loading the resource, to the package with method `$resources` inside the `init` method.
 
 > If the `init` method returns a `promise`, the package would wait for the promise to be resolved and then it would be ready.
 
@@ -1244,7 +1244,7 @@ new J( 'root', {
 
 ## Extensions
 
-`Extensions` are used to extend more features for Jolin, then you can invoke an `Extension` by using the [`$install`](#install) method in the package.
+`Extensions` are used to extend more features for Jaunty, then you can invoke an `Extension` by using the [`$install`](#install) method in the package.
 
 We have built some extensions, such as [`J.View`](#jview), [`J.Model`](#jmodel), and so on.
 
@@ -1265,7 +1265,7 @@ An extension also has its own resources, the same as `Package`, the resources mu
 
 ### J.Extension
 
-All of the `Extensions` should extend from `J.Extension` and there are some rules you have to follow while creating an extension.
+All of the `Extensions` should extend from `J.Extension` and there are some rules you have to conform to while creating an extension.
 
 ### Creating an Extension
 
@@ -1504,7 +1504,7 @@ J.Package( {
 
 ## J.View
 
-The `J.View` is a built-in `Extension` of Jolin, it helps you to build the user interfaces easier. `J.View` provides some solutions for development, such as resource management, template, two-way binding, etc. It also can be combined with other extensions of Jolin such as [`J.Model`](#jmodel), `J.Language` and so on.
+The `J.View` is a built-in `Extension` of Jaunty, it helps you to build the user interfaces easier. `J.View` provides some solutions for development, such as resource management, template, two-way binding, etc. It also can be combined with other extensions of Jaunty such as [`J.Model`](#jmodel), `J.Language` and so on.
 
 ### Creating a J.View instance
 
@@ -1909,7 +1909,7 @@ new J.Package( {
         this.$install( 'view', 'view.js' );
     },
     action() {
-        this.view.$set( this.view.data, 'name', 'Jolin' );
+        this.view.$set( this.view.data, 'name', 'Jaunty' );
     }
 } );
 ~~~
@@ -2720,11 +2720,11 @@ We are going to migrate them to independent filter packages.
 
 ## J.Model
 
-Jolin provides a built-in `Model` named `J.Model` which can help you to create a model and to bind it to a J.View instance easily.
+Jaunty provides a built-in `Model` named `J.Model` which can help you to create a model and to bind it to a J.View instance easily.
 
 ### Creating a J.Model instance
 
-J.Model is an extension which extends from [J.Extension](#jextension), so, a J.Model instance would follow the rules of J.Extension class, and it can be created and loaded in the same as a typical extension.
+J.Model is an extension which extends from [J.Extension](#jextension), so, a J.Model instance would conform to the rules of J.Extension class, and it can be created and loaded in the same as a typical extension.
 
 So, for creating an instance of J.Model, just use `new J.Model`:
 
@@ -3048,7 +3048,7 @@ The real data of the model instane would be stored in `$data` property, so if yo
 ~~~js
 new J.Model( {
     data : {
-        name : 'Jolin'
+        name : 'Jaunty'
     },
     init() {
         this.$data.name = 'J';
@@ -3096,7 +3096,7 @@ new J.Model( {
     },
     init() {
         this.$assign( account, {
-            name : 'Jolin'
+            name : 'Jaunty'
         } );
 
         this.$assign( this.$data.account, 'age', 12 );
@@ -3365,7 +3365,7 @@ new J.Model( {
         return this.$request( 'url', {
             method : 'POST',
             data : {
-                name : 'Jolin'
+                name : 'Jaunty'
             }
         } ).then( response => {
             this.$signal( 'success', response );
@@ -3406,7 +3406,7 @@ __Examples__
 ~~~js
 new J.Model( {
     data : {
-        name : 'Jolin'
+        name : 'Jaunty'
     },
     init() {
         this.$watch( 'name', () => {
@@ -3449,7 +3449,7 @@ __Examples__
 ~~~js
 new J.Model( {
     data : {
-        name : 'Jolin'
+        name : 'Jaunty'
     },
     init() {
         const handler = val => {
@@ -3486,7 +3486,7 @@ __Examples__
 ~~~js
 new J.Model( {
     data : {
-        name : 'Jolin'
+        name : 'Jaunty'
     },
     validations : {
         name : {
@@ -3514,7 +3514,7 @@ By calling this method, the value of `$validation` will change too, so you can g
 
 You can create a package just for one or some filters for using them in templates, and to load them by adding their paths to the `filters` while installing a J.View instance.
 
-A `Filter Package` is a simple package with nothing different from other package, and the package would be load by J.View, and all methods would be seemed as a filter function.
+A `Filter Package` is a simple package with nothing different from other package, and the package would be load by J.View, and all methods would be thought of as a filter function.
 
 For example, this is a `Filter Package` for doing some simple operations to an `Array`:
 
@@ -3595,7 +3595,7 @@ J.Package( {
             container : document.body,
             url : 'view.html',
             models : this.$mount( 'model', 'path of model package', {
-                name : 'Jolin'
+                name : 'Jaunty'
             } )
         }, {
             name : 'view',
@@ -3638,13 +3638,13 @@ The classes `J`, `J.Package` and `J.Extension` are extends from an event center 
 
 ## J.Promise
 
-We implemented a Promise in Jolin by following the standards of [Promise A+](https://promisesaplus.com/). You can use this Promise object by calling `J.Promise` if the browsers you want to support do not support a native Promise object. And it also will be working well with the native Promise in browsers we support.
+We implemented a Promise in Jaunty by conforming to the standards of [Promise A+](https://promisesaplus.com/). You can use this Promise object by calling `J.Promise` if the browsers you want to support do not support a native Promise object. And it also will be working well with the native Promise in browsers we support.
 
 ~~~js
 new J.Promise( resolve => {
-    return window.Promise.resolve( 'Jolin' );
+    return window.Promise.resolve( 'Jaunty' );
 } ).then( name => {
-    // name is Jolin
+    // name is Jaunty
 } ).catch( e => {
     console.error( e );
 } );

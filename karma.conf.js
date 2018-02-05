@@ -1,7 +1,11 @@
 // Karma configuration
 // Generated on Tue Jul 11 2017 12:49:06 GMT+0800 (CST)
 
-const babel = require( 'rollup-plugin-babel' );
+process.env.CHROME_BIN = require( 'puppeteer' ).executablePath();
+
+const resolve = require( 'rollup-plugin-node-resolve' );
+
+//const babel = require( 'rollup-plugin-babel' );
 
 const argv = require( 'optimist' ).argv;
 
@@ -28,13 +32,25 @@ module.exports = function(config) {
             ];
 
             if( argv.file || argv.files ) {
-                argv.file && files.push( { pattern : argv.file.trim(), included : true, watched : false } );
+                argv.file && files.push( {
+                    pattern : argv.file.trim(),
+                    included : true,
+                    watched : false
+                } );
 
                 argv.files && argv.files.split( ',' ).forEach( file => {
-                    files.push( { pattern : file.trim(), included : true, watched : false } );
+                    files.push( {
+                        pattern : file.trim(),
+                        included : true,
+                        watched : false
+                    } );
                 } );
             } else {
-                files.push( { pattern : 'test/**/*.spec.js', included : true, watched : false } );
+                files.push( {
+                    pattern : 'test/**/*.spec.js',
+                    included : true,
+                    watched : false
+                } );
             }
 
             return files;
@@ -55,7 +71,10 @@ module.exports = function(config) {
         // 
         rollupPreprocessor : {
             plugins : [
-                babel()
+                resolve( {
+                    module : true,
+                    jsnext : true
+                } )
             ],
             output : {
                 format : 'iife'
@@ -68,7 +87,7 @@ module.exports = function(config) {
         reporters: ['progress'],
 
         // web server port
-        port: 9876,
+        port: 7997,
 
         // enable / disable colors in the output (reporters and logs)
         colors: true,
@@ -82,7 +101,11 @@ module.exports = function(config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['PhantomJS'],
+        browsers: [ 'ChromeHeadless' ], //PhantomJS, ChromeHeadless
+
+        client : {
+            captureConsole : true
+        },
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits

@@ -1,3 +1,5 @@
+import EventEmitter from '@lvchengbin/event-emitter';
+
 export const assign = Object.assign;
 export const isArray = Array.isArray;
 export const getKeys = Object.keys;
@@ -9,3 +11,4 @@ export const push = arrayPrototype.push;
 export const __packages = {};
 export const __extensions = {};
 export const __plugins = {};
+export const eventcenter = new EventEmitter();

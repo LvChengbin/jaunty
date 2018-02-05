@@ -8,7 +8,9 @@
         "define" : true,
         "describe" : true,
         "it" : true,
-        "expect" : true
+        "expect" : true,
+        "J" : true,
+        "Jaunty" : true
     },
     "extends": "eslint:recommended",
     "parserOptions": {

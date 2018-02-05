@@ -1,8 +1,9 @@
+import Promise from '@lvchengbin/promise';
+import is from '@lvchengbin/is';
+
 import { Record } from '../../utils';
 import { expression, interpolation, createAnchor, findMethod } from '../utils';
-import Value from '../../../core/value';
-import Promise from '../../../core/promise';
-import { checks } from '../../../core/utils';
+import Value from '../../../value';
 
 let id = 0;
 
@@ -109,7 +110,7 @@ export default {
 
                 const h = ( f, value ) => {
                     const func = f( scope );
-                    checks.function( func ) && findMethod( func, view )( value );
+                    is.function( func ) && findMethod( func, view )( value );
                 };
 
                 for( let ev of events ) {

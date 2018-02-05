@@ -1,4 +1,4 @@
-import { eventSupported } from '../../../core/utils';
+import { eventSupported } from '../../../utils';
 import { interpolation, wrapFilter } from '../utils';
 import { isArray } from '../../../variables';
 

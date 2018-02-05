@@ -1,4 +1,4 @@
-import config from '../../core/config';
+import config from '../../config';
 
 const view = {
     leftDelimiter : '{{',

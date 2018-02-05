@@ -1,17 +1,19 @@
+import Promise from '@lvchengbin/promise';
+import is from '@lvchengbin/is';
+import { URL } from '@lvchengbin/url';
+
 import config from './config';
-import J from '../../core/j';
-import Extension from '../../core/extension';
-import { realPath, checks, html2Node } from '../../core/utils';
-import { request } from '../../core/http';
-import Promise from '../../core/promise';
+import J from '../../j';
+import Extension from '../../extension';
+import { $u, html2Node } from '../../utils';
+import { request } from '../../http';
 import { eventcenter } from '../utils';
 import { copyDescripter } from './utils';
 import { traverse as compile } from './compile';
 import { traverse as traverseData , observer, mtrigger } from '../observer';
 import { assign, slice, getKeys } from '../../variables';
 import Model from '../model';
-import URL from '../url';
-import ec from '../../core/ec';
+import ec from '../../eventcenter';
 
 const scope = { $location : {} };
 
@@ -62,7 +64,7 @@ class View extends Extension {
                 const frag = html2Node( this.template );
                 compile( slice.call( frag.childNodes ), this, this );
 
-                if( checks.string( this.container ) ) {
+                if( is.string( this.container ) ) {
                     this.container = document.querySelector( this.container );
                 }
 
@@ -84,7 +86,7 @@ class View extends Extension {
     __loadTpl() {
         const promise = !this.url ? Promise.resolve() : new Promise( resolve => {
             const c = config.storage;
-            this.url = realPath( this.url );
+            this.url = $u.generate( this.url );
             request( this.url, {
                 type : 'text',
                 storage : {
@@ -113,14 +115,14 @@ class View extends Extension {
 
     $bind( name, model ) {
         this.$set( this, name, model.$data || null );
-        if( checks.string( model ) ) {
+        if( is.string( model ) ) {
             return this.$bind( name, this.$package.$install( '#anonymous-view-model-' + id++, model ) );
         } else if( model instanceof Model ) {
             model.$on( 'refresh', () => this.$set( this, name,  model.$data ) );
             return Promise.all( [ model.$ready(), this.$ready() ] ).then( () => {
                 this.$set( this, name, model.$data );
             } );
-        } else if( checks.promise( model ) ) {
+        } else if( is.promise( model ) ) {
             if( model.installation )  {
                 return Promise.all( [ model, this.$ready() ] ).then( args => {
                     const m = args[ 0 ];
@@ -135,7 +137,7 @@ class View extends Extension {
                         m.$on( 'refresh', () => this.$set( this, name, m.$data ) );
                         return m.$ready();
                     } else if( m instanceof J ) {
-                        return this.$bind( name, checks.function( m.expose ) ?  m.expose() : m.data );
+                        return this.$bind( name, is.function( m.expose ) ?  m.expose() : m.data );
                     } else {
                         return this.$set( this, name, m );
                     }
@@ -194,24 +196,24 @@ class View extends Extension {
     }
 
     $unwatch( exp, handler ) {
-        eventcenter.$off( this.__id + '.' + exp, handler );
+        eventcenter.$removeListener( this.__id + '.' + exp, handler );
     }
 
     $filter( name, handler ) {
-        if( checks.promise( handler ) ) {
+        if( is.promise( handler ) ) {
             return handler.then( data => {
                 if( !data ) return;
                 if( data instanceof J ) {
-                    this.$filters[ name ] = checks.function( data.expose ) ? data.expose() : data;
+                    this.$filters[ name ] = is.function( data.expose ) ? data.expose() : data;
                 } else {
                     this.$filters[ name ] = data;
                 }
             } );
         }
-        if( checks.string( handler ) ) {
+        if( is.string( handler ) ) {
             return this.$filter( name, this.$mount( handler ).then( p => {
                 for( let attr in p ) {
-                    if( checks.function( p[ attr ] ) ) {
+                    if( is.function( p[ attr ] ) ) {
                         p[ attr ] = p[ attr ].bind( p );
                     }
                 }
@@ -224,7 +226,7 @@ class View extends Extension {
 
     $destruct() {
         eventcenter.$removeListeners( name => name.indexOf( this.__id + '.' ) > -1 );
-        this.$trigger( 'destruct' );
+        this.$emit( 'destruct' );
     }
 }
 

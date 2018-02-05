@@ -1,8 +1,8 @@
-import { checks } from '../../../core/utils';
+import is from '@lvchengbin/is';
+
 import { createAnchor, removeNode } from '../utils';
 import { traverse } from '../compile';
-import ec from '../../../core/ec';
-import { assign } from '../../../variables';
+import ec from '../../../eventcenter';
 
 const sp = '!!!!!';
 
@@ -59,7 +59,7 @@ export default {
         const value = directive.value;
         const scope = node.$scope;
         const options = node.$options;
-        const originalOptions = assign( {}, options );
+        const originalOptions = Object.assign( {}, options );
         const test = createTest( value );
         const style = node.style;
         const display = style.display;
@@ -74,7 +74,7 @@ export default {
 
         let remove = true;
         if ( anchor.$originalNode.hasAttribute( 'router-remove' ) ) {
-            if( checks.false( anchor.$originalNode.getAttribute( 'router-remove' ) ) ) {
+            if( is.false( anchor.$originalNode.getAttribute( 'router-remove' ) ) ) {
                 remove = false;
             }
         }
@@ -112,7 +112,7 @@ export default {
          * Remove bound event while the node being removed from the dom tree
          */
         anchor.$ec.$on( 'remove', () => {
-            ec.$off( 'routechange', handler );
+            ec.$removeListener( 'routechange', handler );
         } );
         handler();
     }

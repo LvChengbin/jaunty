@@ -1,6 +1,7 @@
+import is from '@lvchengbin/is';
 import { expression } from '../utils';
-import { request } from '../../../core/http';
-import { checks, uniqueId } from '../../../core/utils';
+import { request } from '../../../http';
+import { uniqueId } from '../../../utils';
 import { observer } from '../../observer';
 import Model from '../../model';
 
@@ -40,7 +41,7 @@ export default {
             }
         }
 
-        const limited = checks.false( node.getAttribute( 'data-global' ) );
+        const limited = is.false( node.getAttribute( 'data-global' ) );
 
         if( limited ) {
             node.$scope = observer( { [ variable ] : null }, uniqueId(), scope );

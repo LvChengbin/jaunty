@@ -1,4 +1,4 @@
-import { uniqueId } from '../../../core/utils';
+import { uniqueId } from '../../../utils';
 import { Record } from '../../utils';
 import { interpolation } from '../utils';
 import { observer } from '../../observer';

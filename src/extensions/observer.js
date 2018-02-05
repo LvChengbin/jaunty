@@ -1,7 +1,9 @@
+import is from '@lvchengbin/is';
+
 import { Record, eventcenter } from './utils';
-import { isArray, getKeys, defineProperty, arrayPrototype as proto } from '../variables';
-import { checks, uniqueId } from '../core/utils';
-import Value from '../core/value';
+import { getKeys, defineProperty, arrayPrototype as proto } from '../variables';
+import { uniqueId } from '../utils';
+import Value from '../value';
 
 const methods = Object.create( proto );
 
@@ -124,7 +126,7 @@ function translate( obj, key, val, dest ) {
                 }
                 if( v === value ) return;
                 console.log( '[J Observer] SET : ', path );
-                const isArr = isArray( val );
+                const isArr = is.array( val );
                 if( setter ) {
                     setter.call( obj, special || v  );
                     eventcenter.$strigger( path, v, value, path, special );
@@ -158,7 +160,7 @@ function mtrigger( obj ) {
 }
 
 function traverseTrigger( obj ) {
-    const isarr = isArray( obj );
+    const isarr = is.array( obj );
 
     if( isarr ) {
         for( let i = 0, l = obj.length; i < l; i = i + 1 ) {
@@ -194,7 +196,7 @@ function traverse( obj, base, dest ) {
     } else {
         ob.__paths = [ base ];
     }
-    const isarr = isArray( obj );
+    const isarr = is.array( obj );
 
     if( isarr ) {
         const subs = ob.__subs = [];
@@ -215,7 +217,7 @@ function traverse( obj, base, dest ) {
         if( isarr && ( Math.floor( key ) == key ) ) continue;
         const path = base ? base + '.' + key : key;
         ob[ key ] = path;
-        checks.function( val ) || translate( obj, key, val, dest );
+        is.function( val ) || translate( obj, key, val, dest );
         ( typeof val === 'object' && val && !val.__var ) && traverse( val, path );
     }
     return dest;

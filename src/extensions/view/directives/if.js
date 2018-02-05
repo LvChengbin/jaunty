@@ -1,8 +1,8 @@
+import is from '@lvchengbin/is';
+
 import { Record } from '../../utils';
-import { checks } from '../../../core/utils';
 import { interpolation, replaceNode, createAnchor } from '../utils';
 import { traverse } from '../compile';
-import { getKeys } from '../../../variables';
 function fail( view, node, f ) {
     const options = node.$options;
     const scope = node.$scope;
@@ -37,7 +37,7 @@ function fail( view, node, f ) {
     if( node.$forAnchor ) {
         const forItems = node.$forAnchor.$items;
         anchor.$forAnchor = node.$forAnchor;
-        const keys = getKeys( forItems );
+        const keys = Object.keys( forItems );
         for( let i = 0, l = keys.length; i < l; i = i + 1 ) {
             if( forItems[ keys[ i ] ] === node ) {
                 forItems[ anchor.$forPosition = keys[ i ] ] = anchor;
@@ -76,7 +76,7 @@ export default {
         let remove = true;
 
         if ( node.hasAttribute( 'if-remove' ) ) {
-            if( checks.false( node.getAttribute( 'if-remove' ) ) ) {
+            if( is.false( node.getAttribute( 'if-remove' ) ) ) {
                 remove = false;
             }
         }

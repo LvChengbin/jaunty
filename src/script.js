@@ -22,7 +22,7 @@ const Script = {
             localcache = conf.localcache
         } = options;
 
-        url = new URL( url, location.href );
+        url = new URL( url, location.href ).toString();
 
         const exists = pool[ url ];
         if( exists ) return exists.promise;

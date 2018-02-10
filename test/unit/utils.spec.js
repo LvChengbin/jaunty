@@ -1,8 +1,5 @@
 import config from './config';
-
-import { 
-    uniqueId, currentScript, extract, dom
-} from '../../src/utils';
+import { uniqueId, currentScript, extract } from '../../src/utils';
 
 describe( 'J/Core/Utils', () => {
     describe( 'uniqueId', () => {
@@ -23,7 +20,6 @@ describe( 'J/Core/Utils', () => {
         } );
 
     } );
-
 
     describe( 'currentScript', () => {
         it( 'Should have gotten the correct script node with inline scripts', done => {
@@ -78,30 +74,6 @@ describe( 'J/Core/Utils', () => {
             expect( extract( 'a.b.c', data ) ).toEqual( 'Jaunty' );
             expect( extract( 'd', data ) ).toEqual( undefined );
             expect( extract( 'a-b-c', data, '-' ) ).toEqual( 'Jaunty' );
-        } );
-    } );
-
-    describe( 'dom', () => {
-        it( 'create', () => {
-            expect( dom.create( '<div></div>' ).nodeType ).toEqual( 11 );
-            expect( dom.create( '<table></table>' ).nodeType ).toEqual( 11 );
-            expect( dom.create( '<td></td>' ).nodeType ).toEqual( 11 );
-            expect( dom.create( '<li></li>' ).nodeType ).toEqual( 11 );
-            expect( dom.create( '<div></div>' ).firstChild.nodeName ).toEqual( 'DIV' );
-            expect( dom.create( '<table></table>' ).firstChild.nodeName ).toEqual( 'TABLE' );
-            expect( dom.create( '<td></td>' ).firstChild.nodeName ).toEqual( 'TD' );
-            expect( dom.create( '<li></li>' ).firstChild.nodeName ).toEqual( 'LI' );
-            expect( dom.create( '<span></span><img />' ).firstChild.nodeName ).toEqual( 'SPAN' );
-            expect( dom.create( '<span></span><img />' ).lastChild.nodeName ).toEqual( 'IMG' );
-        } );
-
-        it( 'traverse', () => {
-            const d = dom.create( '<div><ul><li><span>Jaunty</span></li></ul></div>' );
-            const nodes = [];
-            dom.traverse( d.firstChild, node => {
-                nodes.push( node.nodeName );
-            } );
-            expect( nodes ).toEqual( [ 'DIV', 'UL', 'LI', 'SPAN', '#text' ] );
         } );
     } );
 } );

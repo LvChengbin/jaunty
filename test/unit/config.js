@@ -1,4 +1,7 @@
+const server = 'http://localhost:50002';
+
 export default {
-    server : 'http://localhost:50002',
-    host : 'http://localhost:7998'
+    server,
+    host : 'http://localhost:7998',
+    packages : server + '/static/packages'
 };

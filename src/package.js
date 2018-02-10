@@ -1,22 +1,22 @@
 import J from './j.js';
-import { __packages, assign } from './variables.js';
-import { currentScript } from './utils.js';
+import { __packages } from './variables.js';
+import { currentScriptURL } from './utils.js';
 
 const Package = function( o = {} ) {
-    const script = currentScript();
+    const url = currentScriptURL();
 
-    if( !script ) {
-        throw new TypeError( 'Cannot find script element' );
+    if( !url ) {
+        throw new TypeError( 'Cannot get url of the script file.' );
     }
 
     const P = class extends J {
         constructor( options = {}, i = {} ) {
-            super( assign( {}, options ), i );
+            super( Object.assign( {}, options ), i );
         }
     };
 
-    assign( P.prototype, o );
-    return( __packages[ script.getAttribute( 'data-src' ) ] = P );
+    Object.assign( P.prototype, o );
+    return( __packages[ url ] = P );
 };
 
 export default Package;

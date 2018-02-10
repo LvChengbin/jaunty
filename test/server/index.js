@@ -2,14 +2,12 @@ const Koa = require( 'koa' );
 const Router = require( '@lvchengbin/koa-router' );
 const logger = require( 'koa-logger' );
 const parser = require( 'koa-body' );
-const serve = require( 'koa-static' );
-const mount = require( 'koa-mount' );
+const send = require( 'koa-send' );
 
 const app = new Koa();
-app.use( logger() );
 const router = new Router( app );
 
-app.use( mount( '/static', serve( './test/server/static' ) ) );
+app.use( logger() );
 
 app.use( async ( ctx, next ) => {
     if( ctx.method === 'OPTIONS' ) {
@@ -17,8 +15,14 @@ app.use( async ( ctx, next ) => {
         ctx.set( 'Access-Control-Allow-Origin', origin );
         ctx.body = {};
     } else {
-        next();
+        await next();
     }
+} );
+
+router.get( /^\/static/, async ctx => {
+    const origin = ctx.request.get( 'origin' );
+    ctx.set( 'Access-Control-Allow-Origin', origin );
+    await send( ctx, ctx.path, { root : __dirname } );
 } );
 
 app.use( parser() );
@@ -34,9 +38,9 @@ router.get( '/javascript', async ctx => {
     const origin = ctx.request.get( 'origin' );
     ctx.set( 'Access-Control-Allow-Origin', origin );
     ctx.set( 'Content-Type', 'application/javascript' );
-    console.log( ctx.query.t );
     ctx.body = ctx.query.t;
 } );
 
-
 app.listen( 50002 );
+
+console.log( 'Listening to the port: 50002' );

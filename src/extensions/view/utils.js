@@ -1,4 +1,4 @@
-import is from '@lvchengbin/is';
+import dom from '@lvchengbin/dom';
 import { eventcenter } from '../utils';
 import escapeReg from '@lvchengbin/escape/src/regexp';
 import EventEmitter from '@lvchengbin/event-emitter';
@@ -115,18 +115,17 @@ function purifyNode( node ) {
         item.$relevant && purifyNode( item.$relevant );
         item.$ec.emit( 'remove' );
     } );
+
+    return node;
 }
 
-function removeNode( node, parentNode ) {
-    purifyNode( node );
-    parentNode || ( parentNode = node.parentNode );
-    return parentNode && parentNode.removeChild( node );
+function removeNode( node ) {
+    return dom.remove( purifyNode( node ) );
 }
 
-function replaceNode( newNode, oldNode, parentNode, pure = false ) {
+function replaceNode( node, oldNode, pure = false ) {
     pure || purifyNode( oldNode );
-    parentNode || ( parentNode = oldNode.parentNode );
-    return parentNode && parentNode.replaceChild( newNode, oldNode );
+    return dom.replace( node, oldNode );
 }
 
 function createAnchor( text, scope, options ) {
@@ -174,11 +173,7 @@ function convertPackage( str, pkg ) {
 
 function strConvert( str, key, variable ) {
     return str.replace(
-        new RegExp( 
-            '(^|[^$_\\w\\d.])' + 
-            escapeReg( key ) + 
-            '\\b(?=(?:[^\'"]*[\'"][^\'"]*[\'"])*[^\'"]*$)', 'g'
-        ),
+        new RegExp( '(^|[^$_\\w\\d.])' + escapeReg( key ) + '\\b(?=(?:[^\'"]*[\'"][^\'"]*[\'"])*[^\'"]*$)', 'g' ),
         '$1' + variable
     );
 }
@@ -199,47 +194,9 @@ function findMethod( func, view ) {
     }
 }
 
-function unique( arr ) {
-    const result = [];
-
-    for( let item of arr ) {
-        if( result.indexOf( item ) < 0 ) {
-            result.push( item );
-        }
-    }
-
-    return result;
-}
-
-function addClass( elem, className ) {
-    is.array( className ) && ( className = className.join( ' ' ) );
-
-    const result = elem.className + ' ' + className;
-    const arr = result.split( /\s+/ );
-    elem.className = unique( arr ).join( ' ' );
-    return elem;
-}
-
-function removeClass( elem, className ) {
-
-    is.array( className ) || ( className = className.split( /\s+/ ) );
-    const exists = elem.className.split( /\s+/ );
-
-    for( let i = 0, l = exists.length; i < l; i += 1 ) {
-        if( className.indexOf( exists[ i ] ) > -1 ) {
-            exists.splice( i--, 1 );
-        }
-    }
-
-    elem.className = exists.join( ' ' );
-
-    return elem;
-}
-
 export { 
     interpolation, expression, 
     traverseNode, removeNode,
     createAnchor, replaceNode, wrapNode, cloneNode,
-    addClass, removeClass,
     copyDescripter, convertPackage, strConvert, findMethod, wrapFilter
 };

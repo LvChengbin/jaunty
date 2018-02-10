@@ -31,14 +31,14 @@ module.exports = function(config) {
                 { pattern : 'src/**/*.js', included : false, watched : false }
             ];
 
-            if( argv.file || argv.files ) {
+            if( argv.file || argv.filelist ) {
                 argv.file && files.push( {
                     pattern : argv.file.trim(),
                     included : true,
                     watched : false
                 } );
 
-                argv.files && argv.files.split( ',' ).forEach( file => {
+                argv.filelist && argv.filelist.split( ',' ).forEach( file => {
                     files.push( {
                         pattern : file.trim(),
                         included : true,

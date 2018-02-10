@@ -6,13 +6,19 @@ import { URL } from '@lvchengbin/url';
 import Script from './script';
 import { __packages, __extensions } from './variables';
 
-import { uniqueId, extract, currentScript } from './utils';
+import { uniqueId, extract, currentScriptURL } from './utils';
 
 const roots = {};
+
+const aliases = [ 'alias', 'on', 'once', 'removeListener', 'emit', 'removeAllListeners' ];
 
 class J extends EventEmitter {
     constructor( name, options = {}, initial = {} ) {
         super();
+
+        for( let alias of aliases ) {
+            this.alias( '$' + alias, alias );
+        }
 
         if( is.string( name ) ) {
             this.$name = name;
@@ -32,16 +38,16 @@ class J extends EventEmitter {
         };
 
         for( const attr in properties ) {
-            if( !this[ attr ] ) {
+            if( !this.hasOwnProperty( attr ) ) {
                 this[ attr ] = properties[ attr ];
             }
         }
 
         Object.assign( this, options, initial );
 
-        // get the URL of current package from currentScript
-        const script = currentScript();
-        script && ( this.__url = script.getAttribute( 'data-src' ) );
+        if( !this.$url ) {
+            this.$url = currentScriptURL();
+        }
 
         // to get the root package of current package
         this.$root = this;
@@ -62,11 +68,10 @@ class J extends EventEmitter {
 
         this.__exts = {};
         this.__resources = [];
-        this.__isready = false;
 
         for( let propery in this ) {
             if( /^__init[A-Z]+/.test( propery ) && is.function( this[ propery ] ) ) {
-                this[ propery]();
+                this[ propery ]();
             }
         }
 
@@ -77,30 +82,23 @@ class J extends EventEmitter {
         if( is.promise( init ) ) {
             this.__ready = init.then( () => {
                 return Promise.all( this.__resources ).then( () => {
-                    console.info( `[J Package] ${this.$path()} is ready @${this.__url} ` );
-                    this.__isready = true;
+                    console.log( `[J Package] ${this.$path} is ready @${this.$url}` );
                     this.$status = J.readyState.READY;
                     is.function( this.action ) && this.action();
                 } );
             } );
         } else {
             ( this.__ready = Promise.all( this.__resources ) ).then( () => {
-                console.info( '[J Package] PACKAGE : "' + this.$path().join( '.' ) + '" is ready' );
-                this.__isready = true;
+                console.log( `[J Package] ${this.$path} is ready @${this.$url}` );
                 this.$status = J.readyState.READY;
                 is.function( this.action ) && this.action();
             } );
         }
     }
 
-    $url( path ){
-        if( !this.__url ) return null;
-        return path ? new URL( path, this.__url ).toString() : this.__url;
-    }
-
     $resources( resource, describe = null ) {
-        if( this.__isready ) {
-            console.warn( '[J WARN] PACKAGE : Setting new item with "$resources" after "ready"' );
+        if( this.$status === J.readyState.READY ) {
+            console.warn( '[J WARNNING] PACKAGE : Setting new item with "$resources" after "ready"' );
         }
 
         if( resource.$ready ) {
@@ -116,28 +114,40 @@ class J extends EventEmitter {
     }
 
     $ready( handler ) {
-        if( !handler ) return this.__ready;
+        if( !handler ) return this.__ready.then( () => this );
 
         return this.__ready.then( () => {
             handler.call( this, this );
         } );
     }
+
     $find( path ) {
         return extract(
             is.array( path ) ? path.join( '.$children.' ) : path.replace( /\./g, '.$children.' ),
             this.$children
-        );
+        ) || null;
     }
+
     $sibling( name ) {
         return this.$parent ? this.$parent.$find( name ) : null;
     }
 
     $siblings( path = false ) {
-        const all = this.$parant.$children;
         const siblings = [];
+
+        if( this.$root === this ) {
+            for( let sibling in roots ) {
+                if( roots[ sibling ] !== this ) {
+                    siblings.push( path ? sibling : roots[ sibling ] );
+                }
+            }
+            return siblings;
+        }
+
+        const all = this.$parant.$children;
         for( let name in all ) {
             if( all[ name ] !== this ) {
-                siblings.push( path ? all[ name ].$path() : all[ name ] );
+                siblings.push( path ? all[ name ].$path : all[ name ] );
             }
         }
         return siblings;
@@ -175,7 +185,9 @@ class J extends EventEmitter {
             }
         };
 
-        this.__isready || this.$resources( promise, url );
+        if( this.$status !== J.readyState.READY ) {
+            this.$resources( promise, url );
+        }
 
         if( !is.string( url ) ) {
             const p = new Promise( resolve => {
@@ -186,7 +198,7 @@ class J extends EventEmitter {
         }
 
         const p = new Promise( ( resolve, reject ) => {
-            url = new URL( url, this.__url ).toString();
+            url = new URL( url, this.$url ).toString();
             if( __extensions[ url ] ) {
                 resolve( install( __extensions[ url ] ) );
             } else {
@@ -206,14 +218,22 @@ class J extends EventEmitter {
         const p = J.Style.create( Object.assign( {
             url : this.$url( path )
         }, options || {} )  );
-        return this.__isready ? p : this.$resources( p, `Loading stylesheet @ ${path}` );
+
+        if( this.$status === J.readyState.READY ) {
+            return p;
+        }
+
+        return this.$resources( p, `Loading stylesheet @ ${path}` );
     }
 
-    $script( path ) {
-        const p = J.Script.create( {
-            url : this.$url( path )
-        } );
-        return this.__isready ? p : this.$resources( p, `Loading script @ ${path}` );
+    $script( path, options ) {
+        const p = Script.create( new URL( path, this.$url ), options );
+
+        if( this.$status === J.readyState.READY ) {
+            return p;
+        }
+
+        return this.$resources( p, `Loading script @ ${path}` );
     }
 
     $mount( name, url, options = {} ) {
@@ -231,16 +251,25 @@ class J extends EventEmitter {
 
         url = new URL( url, location.href ).toString();
 
+        if( !/\/index\.js/.test( url ) ) {
+            if( url.charAt( url.length - 1 ) != '/' ) {
+                url += '/';
+            }
+            url = new URL( 'index.js', url ).toString();
+        }
+
         const mount = P => {
             const p = new P( options, {
                 $parent : this,
                 $name : name,
-                __url : url
+                $url : url
             } );
 
             anonymous && ( p.$isanonymous = true );
 
-            this.__isready || this.$resources( p, `Mounting package @ ${url}` );
+            if( this.$status !== J.readyState.READY ) {
+                this.$resources( p, `Mounting package @ ${url}` );
+            }
             return ( this.$children[ name ] = p );
         };
 
@@ -248,7 +277,7 @@ class J extends EventEmitter {
             if( __packages[ url ] ) {
                 mount( __packages[ url ] ).$ready( m => { resolve( m ) } );
             } else {
-                Script.create( { url : url } ).then( () => {
+                Script.create( url ).then( () => {
                     mount( __packages[ url ] ).$ready( m => {
                         resolve( m );
                     } );

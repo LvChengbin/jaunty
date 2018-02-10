@@ -1,3 +1,9 @@
-import p from 'promise';
+import J from '../../src/j';
+import config from './config';
 
-console.log( p );
+describe( 'Jaunty.Package', () => {
+    it( 'Should be an instance of J', () => {
+    } );
+} );
+
+

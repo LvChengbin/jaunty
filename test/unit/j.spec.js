@@ -300,4 +300,37 @@ describe( 'Jaunty', () => {
         } );
     } );
 
+    describe( 'Jaunty.Package', () => {
+        beforeAll( done => {
+            Object.assign( J, { Package, Promise } );
+            window.J = J;
+            Promise.all( [
+                j.$mount( 'test-1', config.packages + '/test-1' ),
+                j.$mount( 'test-2', config.packages + '/test-2', {
+                    packages : config.packages
+                } )
+            ] ).then( done );
+        } );
+        it( 'Should be an instance of J', () => {
+            expect( j.$find( 'test-1' ) instanceof J ).toBeTruthy();
+            expect( j.$find( 'test-2' ) instanceof J ).toBeTruthy();
+        } );
+
+        it( 'Could find package by path', () => {
+            expect( j.$find( 'test-2.test-1' ).prop1 ).toEqual( 'test-1' );
+            expect( j.$find( 'test-2.test-1' ) ).toEqual( j.$find( 'test-2' ).$find( 'test-1' ) );
+        } );
+
+        it( 'Sub packages should have a $parent', () => {
+            expect( j.$find( 'test-1' ).$parent ).toEqual( j );
+            expect( j.$find( 'test-2.test-1' ).$parent ).toEqual( j.$find( 'test-2' ) );
+        } );
+
+        it( 'Could pass in options to init method', () => {
+            const p = j.$find( 'test-2' );
+            expect( p.packages ).toEqual( config.packages );
+            expect( p.prop1 ).toEqual( 'test-2' );
+        } );
+    } );
+
 } );

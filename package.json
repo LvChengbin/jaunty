@@ -63,7 +63,7 @@
         "test-style-parser": "karma start --file=test/unit/style/parser.spec.js",
         "test-style-variables": "karma start --file=test/unit/style/variables.spec.js",
         "test-utils": "karma start --file=test/unit/utils.spec.js",
-        "test-package": "karma start --file=test/unit/package.spec.js",
+        "test-message" : "karma start --file=test/unit/message.spec.js",
         "test-j": "karma start --filelist=test/unit/j.spec.js,test/unit/resources/j-script.js",
         "lint": "eslint ./ --cache --ignore-path .eslintignore",
         "precommit-msg": "echo 'Pre-commit checks...' && exit 0"

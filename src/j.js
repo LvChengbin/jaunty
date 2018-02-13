@@ -82,14 +82,14 @@ class J extends EventEmitter {
         if( is.promise( init ) ) {
             this.__ready = init.then( () => {
                 return Promise.all( this.__resources ).then( () => {
-                    console.log( `[J Package] ${this.$path} is ready @${this.$url}` );
+                    console.log( `[J Package] ${this.$path.join('.')} is ready @${this.$url}` );
                     this.$status = J.readyState.READY;
                     is.function( this.action ) && this.action();
                 } );
             } );
         } else {
             ( this.__ready = Promise.all( this.__resources ) ).then( () => {
-                console.log( `[J Package] ${this.$path} is ready @${this.$url}` );
+                console.log( `[J Package] ${this.$path.join('.')} is ready @${this.$url}` );
                 this.$status = J.readyState.READY;
                 is.function( this.action ) && this.action();
             } );

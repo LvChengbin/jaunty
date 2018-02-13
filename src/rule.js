@@ -12,15 +12,13 @@ import is from '@lvchengbin/is';
 
 const Rule = class {
     constructor( path, params ) {
-        if( is.string( path ) || is.regexp( path ) ) {
-            this.path = path;
-            params = path;
+        this.path = path;
+        if( is.string( params ) || is.function( params ) ) {
+            params = {
+                action : params
+            };
         }
-        Object.assign( this, params );
-
-        if( is.string( this.type ) ) {
-            this.type = [ this.type ];
-        }
+        Object.assign( this, params || {} );
     }
 };
 

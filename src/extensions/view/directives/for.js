@@ -1,12 +1,13 @@
+import Observer from '@lvchengbin/observer';
+
 import { Record } from '../../utils';
 import { traverse as compile } from '../compile';
-import { observer, subscope } from '../../observer';
+import { subscope } from '../../observer';
 import { interpolation, createAnchor, wrapNode, replaceNode, cloneNode, removeNode } from '../utils';
 import { getKeys, defineProperty, assign, slice, isArray } from '../../../variables';
 
 const directiveCache = {};
 
-let $id = 0;
 function forIn( view, obj, func, anchor, key, value, index ) {
     const frag = document.createDocumentFragment();
     const node = anchor.$node;
@@ -25,7 +26,7 @@ function forIn( view, obj, func, anchor, key, value, index ) {
             __var : true 
         } );
         index && ( v[ index ] = i );
-        const nscope = observer( v, --$id, node.$scope );
+        const nscope = Observer.create( v, node.$scope );
         key && defineProperty( nscope, key, {
             enumerable : true,
             writable : true,
@@ -82,7 +83,7 @@ function updateForIn( view, obj, func, anchor, key, value, index ) {
                 __var : true 
             } );
             index && ( v[ index ] = i );
-            const nscope = observer( v, --$id, scope );
+            const nscope = Observer.create( v, scope );
             key && defineProperty( nscope, key, {
                 enumerable : true,
                 writable : true,
@@ -161,7 +162,7 @@ function forOfNodes( view, list, func, anchor, value, index ) {
                 } );
                 index && ( v[ index ] = i );
                 item.$forAnchor = anchor;
-                wrapNode( item, observer( v, --$id, scope ), options, true );
+                wrapNode( item, Observer.create( v, scope ), options, true );
                 compile( [ item ], view );
             }
         }
@@ -201,7 +202,9 @@ export default {
         parentNode.insertBefore( endAnchor, node.nextSibling );
         startAnchor.$items = {};
         if( /^\d+$/.test( value.trim() ) ) {
+            console.log( '' );
         } else {
+            let obj, range, list;
             switch( m[ 4 ] ) {
                 case 'in' :
                     descriptor = m[ 5 ];
@@ -212,7 +215,7 @@ export default {
                             updateForIn( view, f( scope ), func, startAnchor, m[ 1 ], m[ 2 ], m[ 3 ]);
                         } );
                     }
-                    const obj = f( scope );
+                    obj = f( scope );
                     Record.reset();
                     if( !obj ) {
                         throw new TypeError( '[ J.ERROR ]' + descriptor + ' is ' + obj );
@@ -221,7 +224,7 @@ export default {
                     break;
                 case 'of':
                     descriptor = m[ 5 ];
-                    const range = descriptor.match( /(.*)\.{3}(.*)/ );
+                    range = descriptor.match( /(.*)\.{3}(.*)/ );
                     if( range ) {
                         const min = interpolation( range[ 1 ] );
                         const max = interpolation( range[ 2 ] );
@@ -242,7 +245,7 @@ export default {
                             updateForOf( view, f( scope ), func, startAnchor, endAnchor, m[ 1 ], m[ 2 ] );
                         } );
                     }
-                    const list = f( scope );
+                    list = f( scope );
                     Record.reset();
                     if( !list ) {
                         throw new TypeError( '[ J.ERROR ]' + descriptor + ' is ' + list );

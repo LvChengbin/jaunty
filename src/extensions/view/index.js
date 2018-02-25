@@ -1,4 +1,5 @@
 import Promise from '@lvchengbin/promise';
+import Observer from '@lvchengbin/observer';
 import is from '@lvchengbin/is';
 import { URL } from '@lvchengbin/url';
 
@@ -10,7 +11,7 @@ import { request } from '../../http';
 import { eventcenter } from '../utils';
 import { copyDescripter } from './utils';
 import { traverse as compile } from './compile';
-import { traverse as traverseData , observer, mtrigger } from '../observer';
+import { traverse as traverseData , mtrigger } from '../observer';
 import { assign, slice, getKeys } from '../../variables';
 import Model from '../model';
 import ec from '../../eventcenter';
@@ -58,7 +59,7 @@ class View extends Extension {
                 this.__loadFilters()
             ] ).then( () => {
                 this.__initScope = this.scope;
-                this.scope = observer( this.scope, this.__id );
+                this.scope = Observer.create( this.scope );
                 this.__loadModels();
                 copyDescripter( this, this.scope, getKeys( this.scope ) );
                 const frag = html2Node( this.template );

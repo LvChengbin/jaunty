@@ -1,7 +1,6 @@
-import { uniqueId } from '../../../utils';
+import Observer from '@lvchengbin/observer';
 import { Record } from '../../utils';
 import { interpolation } from '../utils';
-import { observer } from '../../observer';
 
 export default {
     compile( directive, node ) {
@@ -28,7 +27,7 @@ export default {
         }
         subscope[ varName ] = f( scope );
         Record.reset();
-        node.$scope = observer( subscope, uniqueId(), scope );
+        node.$scope = Observer.create( subscope, scope );
         node.removeAttribute( directive.name );
     }
 };

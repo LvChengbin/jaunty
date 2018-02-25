@@ -202,7 +202,7 @@ class J extends EventEmitter {
             if( __extensions[ url ] ) {
                 resolve( install( __extensions[ url ] ) );
             } else {
-                Script.create( { url : url } ).then( () => {
+                Script.create( url ).then( () => {
                     resolve( install( __extensions[ url ] ) );
                 } ).catch( reason => {
                     reject( reason );

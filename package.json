@@ -63,7 +63,7 @@
         "test-style-parser": "karma start --file=test/unit/style/parser.spec.js",
         "test-style-variables": "karma start --file=test/unit/style/variables.spec.js",
         "test-utils": "karma start --file=test/unit/utils.spec.js",
-        "test-message" : "karma start --file=test/unit/message.spec.js",
+        "test-message": "karma start --file=test/unit/message.spec.js",
         "test-j": "karma start --filelist=test/unit/j.spec.js,test/unit/resources/j-script.js",
         "lint": "eslint ./ --cache --ignore-path .eslintignore",
         "precommit-msg": "echo 'Pre-commit checks...' && exit 0"
@@ -75,14 +75,15 @@
     "main": "gulpfile.js",
     "author": "LvChengbin",
     "dependencies": {
-        "@lvchengbin/biu": "^0.1.2",
+        "@lvchengbin/biu": "^0.1.3",
         "@lvchengbin/dom": "0.0.0",
         "@lvchengbin/escape": "^0.0.2",
         "@lvchengbin/event-emitter": "^0.0.9",
         "@lvchengbin/is": "^0.0.9",
-        "@lvchengbin/localcache": "^0.2.2",
+        "@lvchengbin/localcache": "^0.2.4",
+        "@lvchengbin/observer": "0.0.0",
         "@lvchengbin/promise": "^1.1.3",
-        "@lvchengbin/sequence": "^0.1.3",
-        "@lvchengbin/url": "^0.1.0"
+        "@lvchengbin/sequence": "^1.0.0",
+        "@lvchengbin/url": "^0.1.1"
     }
 }

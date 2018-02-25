@@ -1,8 +1,9 @@
+import Observer from '@lvchengbin/observer';
 import is from '@lvchengbin/is';
+
 import { expression } from '../utils';
 import { request } from '../../../http';
 import { uniqueId } from '../../../utils';
-import { observer } from '../../observer';
 import Model from '../../model';
 
 export default {
@@ -44,7 +45,7 @@ export default {
         const limited = is.false( node.getAttribute( 'data-global' ) );
 
         if( limited ) {
-            node.$scope = observer( { [ variable ] : null }, uniqueId(), scope );
+            node.$scope = Observer.create( { [ variable ] : null }, scope );
         }
 
         if( url ) {

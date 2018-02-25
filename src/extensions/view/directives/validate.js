@@ -1,8 +1,7 @@
+import Observer from '@lvchengbin/observer';
 import is from '@lvchengbin/is';
-import { uniqueId } from '../../../utils';
 import { Record } from '../../utils';
 import { expression, interpolation, convertPackage, findMethod, traverseNode } from '../utils';
-import { observer } from '../../observer';
 import Validate from '../../validate';
 
 function getForm( node ) {
@@ -36,7 +35,7 @@ export default {
             const subscope = {};
             const variable = value || '$validation';
             subscope[ variable ] = {};
-            node.$scope = observer( subscope, uniqueId(), scope );
+            node.$scope = Observer.create( subscope, scope );
             node.$$$validation = node.$scope[ variable ];
 
             node.addEventListener( 'submit', ( e ) => {

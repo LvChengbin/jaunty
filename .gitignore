@@ -26,3 +26,4 @@ Temporary Items
 node_modules
 .tmp
 node_modules
+.eslintcache

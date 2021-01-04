@@ -23,7 +23,7 @@ class Extension extends EventEmitter {
         this.$status = Extension.readyState.LOADING;
     }
 
-    $init() {
+    $_init() {
         const init = is.function( this.init ) && this.init();
 
         if( init && is.function( init.then ) ) {

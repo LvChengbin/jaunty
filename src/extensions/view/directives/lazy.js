@@ -22,7 +22,6 @@ function remove( view, node ) {
 function show( view, node ) {
     const scope = node.$scope;
     const options = node.$options;
-    options.skip = false;
     traverse( slice.call( node.$lazyFrag.childNodes ), view, scope, options );
     node.innerHTML = '';
     node.appendChild( node.$lazyFrag );

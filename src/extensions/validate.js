@@ -55,7 +55,7 @@ export default {
     minlengthIfNotEmpty: ( value, min ) => !value || !value.length || value.length >= min,
     pattern : ( value, reg ) => ( is.regexp( reg ) ? reg : new RegExp( reg ) ).test( value ),
     in : ( value, haystack ) => haystack.indexOf( value ) > -1,
-    date( str ) {
+    date( str, separator = '-' ) {
         if( !str ) return false;
         const match = str.match( /^(\d+)-(\d{1,2})-(\d{1,2})$/ );
         if( !match ) return false;

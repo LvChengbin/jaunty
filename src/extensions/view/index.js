@@ -2,7 +2,6 @@ import Promise from '@lvchengbin/promise';
 import Observer from '@lvchengbin/observer';
 import is from '@lvchengbin/is';
 import { URL } from '@lvchengbin/url';
-
 import config from './config';
 import J from '../../j';
 import Extension from '../../extension';
@@ -77,11 +76,7 @@ class View extends Extension {
                 }
                 return Promise.resolve();
             } ), 'Loading resources'
-        ).then( () => { this.$init() } );
-
-        this.$package.$on( 'destruct', () => {
-            this.$destruct();
-        } );
+        ).then( () => { this.$_init() } );
     }
 
     __loadTpl() {
@@ -171,7 +166,7 @@ class View extends Extension {
      * $set and $assign methods are not working while setting an value which is an instance of Value;
      */
     $set( dest, key, value ) {
-        if( dest.hasOwnProperty( key ) ) {
+        if( Object.prototype.hasOwnProperty.call( dest, key ) ) {
             dest[ key ] = value;
             return;
         }

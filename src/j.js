@@ -1,7 +1,7 @@
-import EventEmitter from '@lvchengbin/event-emitter';
 import Promise from '@lvchengbin/promise';
 import is from '@lvchengbin/is';
 import { URL } from '@lvchengbin/url';
+import Base from '@jaunty/base';
 
 import Script from './script';
 import { __packages, __extensions } from './variables';
@@ -10,16 +10,12 @@ import { uniqueId, extract, currentScriptURL } from './utils';
 
 const roots = {};
 
-const aliases = [ 'alias', 'on', 'once', 'removeListener', 'emit', 'removeAllListeners' ];
-
-class J extends EventEmitter {
+class J extends Base {
     constructor( name, options = {}, initial = {} ) {
-        super();
+        super( name, options, initial );
+    }
 
-        for( let alias of aliases ) {
-            this.alias( '$' + alias, alias );
-        }
-
+    __preinit( name, options, initial ) {
         if( is.string( name ) ) {
             this.$name = name;
         } else if( name ) {
@@ -67,58 +63,6 @@ class J extends EventEmitter {
         this.$root === this && ( roots[ this.$name ] = this )
 
         this.__exts = {};
-        this.__resources = [];
-
-        for( let propery in this ) {
-            if( /^__init[A-Z]+/.test( propery ) && is.function( this[ propery ] ) ) {
-                this[ propery ]();
-            }
-        }
-
-        const init = is.function( this.init ) && this.init( options );
-
-        this.$status = J.readyState.LOADING;
-
-        if( is.promise( init ) ) {
-            this.__ready = init.then( () => {
-                return Promise.all( this.__resources ).then( () => {
-                    console.log( `[J Package] ${this.$path.join('.')} is ready @${this.$url}` );
-                    this.$status = J.readyState.READY;
-                    is.function( this.action ) && this.action();
-                } );
-            } );
-        } else {
-            ( this.__ready = Promise.all( this.__resources ) ).then( () => {
-                console.log( `[J Package] ${this.$path.join('.')} is ready @${this.$url}` );
-                this.$status = J.readyState.READY;
-                is.function( this.action ) && this.action();
-            } );
-        }
-    }
-
-    $resources( resource, describe = null ) {
-        if( this.$status === J.readyState.READY ) {
-            console.warn( '[J WARNNING] PACKAGE : Setting new item with "$resources" after "ready"' );
-        }
-
-        if( resource.$ready ) {
-            const ready = resource.$ready();
-            ready[ '[[ResourceDesc]]' ] = describe;
-            this.__resources.push( ready );
-            return ready;
-        } else {
-            resource[ '[[ResourceDesc]]' ] = describe;
-            this.__resources.push( resource );
-            return resource;
-        }
-    }
-
-    $ready( handler ) {
-        if( !handler ) return this.__ready.then( () => this );
-
-        return this.__ready.then( () => {
-            handler.call( this, this );
-        } );
     }
 
     $find( path ) {
@@ -311,12 +255,6 @@ class J extends EventEmitter {
     }
 }
 
-J.readyState = {
-    CREATED : 0,
-    LOADING : 1,
-    READY : 2
-};
-
 J.find = function( path ) {
     var root ;
     !is.array( path ) && ( path = path.split( '.' ) );
@@ -326,5 +264,4 @@ J.find = function( path ) {
     if( !path.length ) return roots[ root ];
     return roots[ root ].$find( path );
 };
-
 export default J;
